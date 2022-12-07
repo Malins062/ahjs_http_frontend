@@ -1,4 +1,4 @@
-// TODO: write code here
+import HelpDeskWidget from "../widgets/helpdesk/helpdesk";
 
 const subscribeWidget = document.querySelector('[data-widget=subscribe]');
 const subscribeForm = subscribeWidget.querySelector('[data-id=subscribe-form]');
