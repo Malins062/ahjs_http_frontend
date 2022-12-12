@@ -79,23 +79,21 @@ export default class HelpDeskWidget {
 
   static dialogsHTML() {
     return `
-      <div class="modal fade" id="deleteTicketDialog" data-bs-backdrop="static" data-bs-keyboard="false" 
-        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Удалить тикет</h5>
-            </div>
-            <div class="modal-body">
-              <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
-              <button type="button" class="btn btn-primary">ОК</button>
-            </div>
-          </div>
+      <form class="form-dialog-ticket row g-3 hidden">
+        <div class="col-12">
+          <h5>Удалить тикет</h5>
+          <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
         </div>
-      </div>
+        <div class="col-12">
+          <label for="inputAddress2" class="form-label">Адрес 2</label>
+          <input type="text" class="form-control" id="inputAddress2" placeholder="Квартира">
+        </div>
+        <div class="col-12">
+          <button type="button" class="btn btn-secondary">Отмена</button>
+          <button type="submit" class="btn btn-primary">ОК</button>
+        </div>
+      </form>
+      <div class="hidden" id="overlay"></div>
       `;
   }
 
