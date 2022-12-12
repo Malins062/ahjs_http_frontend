@@ -26,7 +26,7 @@ export default class HelpDeskWidget {
               <h5 class="item__name mb-0">${item.created}</h5>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
-              <button class="item__edit btn btn-success btn-sm" title="Редактировать задачу">&#10009;</button>
+              <button class="item__edit btn btn-primary btn-sm" title="Редактировать задачу">&#9998;</button>
               <button class="item__delete btn btn-danger btn-sm ms-1" title="Удалить задачу">&#10005;</button>
           </div>         
           <div class="col-md-1"></div>
