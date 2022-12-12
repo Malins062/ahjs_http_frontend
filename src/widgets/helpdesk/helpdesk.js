@@ -27,7 +27,8 @@ export default class HelpDeskWidget {
             </div>
             <div class="col-md-1 d-flex justify-content-end">
               <button class="item__edit btn btn-primary btn-sm" title="Редактировать задачу">&#9998;</button>
-              <button class="item__delete btn btn-danger btn-sm ms-1" title="Удалить задачу">&#10005;</button>
+              <button class="item__delete btn btn-danger btn-sm ms-1"  data-bs-toggle="modal" 
+                data-bs-target="#deleteTicketDialog" title="Удалить задачу">&#10005;</button>
           </div>         
           <div class="col-md-1"></div>
           <div class="item__description col-md-7 hidden">
@@ -74,6 +75,28 @@ export default class HelpDeskWidget {
         </div>
       </div>
     `;
+  }
+
+  static dialogsHTML() {
+    return `
+      <div class="modal fade" id="deleteTicketDialog" data-bs-backdrop="static" data-bs-keyboard="false" 
+        tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Удалить тикет</h5>
+            </div>
+            <div class="modal-body">
+              <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+              <button type="button" class="btn btn-primary">ОК</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      `;
   }
 
   static idSelector(id) {
@@ -142,6 +165,8 @@ export default class HelpDeskWidget {
     // Отрисовка HTML
     this.parentEl.innerHTML = '';
     if (!this.urlServer) {
+      this.parentEl.innerHTML += HelpDeskWidget.dialogsHTML();
+      console.log(this.parentEl.innerHTML);
       this.tasksList.id = uuidv4();
       this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
     }
