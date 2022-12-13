@@ -77,9 +77,13 @@ export default class HelpDeskWidget {
     `;
   }
 
-  static dialogsHTML() {
+  static get overlayHTML() {
+    return `<div class="hidden" id="overlay"></div>`;
+  }
+
+  static get formTicketDeleteHTML() {
     return `
-      <form class="form-dialog-ticket row g-3 hidden">
+      <form class="form-ticket-delete row g-3 hidden">
         <div class="col-12">
           <h5>Удалить тикет</h5>
           <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
@@ -94,6 +98,25 @@ export default class HelpDeskWidget {
         </div>
       </form>
       <div class="hidden" id="overlay"></div>
+      `;
+  }
+
+  static get formTicketAddHTML() {
+    return `
+      <form class="form-ticket-add row g-3 hidden">
+        <div class="col-12">
+          <h5>Удалить тикет</h5>
+          <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
+        </div>
+        <div class="col-12">
+          <label for="inputAddress2" class="form-label">Адрес 2</label>
+          <input type="text" class="form-control" id="inputAddress2" placeholder="Квартира">
+        </div>
+        <div class="col-12">
+          <button type="button" class="btn btn-secondary">Отмена</button>
+          <button type="submit" class="btn btn-primary">ОК</button>
+        </div>
+      </form>
       `;
   }
 
@@ -163,7 +186,9 @@ export default class HelpDeskWidget {
     // Отрисовка HTML
     this.parentEl.innerHTML = '';
     if (!this.urlServer) {
-      this.parentEl.innerHTML += HelpDeskWidget.dialogsHTML();
+      this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
+      this.parentEl.innerHTML += HelpDeskWidget.formTicketAddHTML;
+      this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
       console.log(this.parentEl.innerHTML);
       this.tasksList.id = uuidv4();
       this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
