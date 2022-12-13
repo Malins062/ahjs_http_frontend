@@ -85,36 +85,36 @@ export default class HelpDeskWidget {
     return `
       <form class="form-ticket-delete row g-3 hidden">
         <div class="col-12">
-          <h5>Удалить тикет</h5>
+          <div class="d-flex justify-content-center">
+            <h5>Удалить тикет</h5>
+          </div>
           <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
         </div>
-        <div class="col-12">
-          <label for="inputAddress2" class="form-label">Адрес 2</label>
-          <input type="text" class="form-control" id="inputAddress2" placeholder="Квартира">
-        </div>
-        <div class="col-12">
+        <div class="col-12 d-flex justify-content-end">
           <button type="button" class="btn btn-secondary">Отмена</button>
-          <button type="submit" class="btn btn-primary">ОК</button>
+          <button type="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
-      <div class="hidden" id="overlay"></div>
       `;
   }
 
-  static get formTicketAddHTML() {
+  static get formTicketHTML() {
     return `
-      <form class="form-ticket-add row g-3 hidden">
-        <div class="col-12">
-          <h5>Удалить тикет</h5>
-          <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
+      <form class="form-ticket row g-3 hidden">
+        <div class="col-12 d-flex justify-content-center">
+          <h5>Изменить тикет</h5>
         </div>
         <div class="col-12">
-          <label for="inputAddress2" class="form-label">Адрес 2</label>
-          <input type="text" class="form-control" id="inputAddress2" placeholder="Квартира">
+          <label for="inputName" class="form-label">Краткое описание</label>
+          <input type="text" class="form-control" id="inputName">
         </div>
         <div class="col-12">
+          <label for="inputDescription" class="form-label">Подробное описание</label>
+          <textarea class="form-control" id="inputDescription" type="text" rows="3"></textarea>
+        </div>
+        <div class="col-12 d-flex justify-content-end">
           <button type="button" class="btn btn-secondary">Отмена</button>
-          <button type="submit" class="btn btn-primary">ОК</button>
+          <button type="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
       `;
@@ -180,20 +180,33 @@ export default class HelpDeskWidget {
     return '.new__item__text';
   }
 
+  static get overlaySelector() {
+    return `[data-id="overlay"]`;
+  }
+
+  static get formTicketSelector() {
+    return '.form-ticket';
+  }
+
+  static get formTicketDeleteSelector() {
+    return '.form-ticket-delete';
+  }
+
 
   // Разметка HTML и отслеживание событий
   bindToDOM() {
     // Отрисовка HTML
     this.parentEl.innerHTML = '';
     if (!this.urlServer) {
-      this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
-      this.parentEl.innerHTML += HelpDeskWidget.formTicketAddHTML;
-      this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
-      console.log(this.parentEl.innerHTML);
-      this.tasksList.id = uuidv4();
-      this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
+      return;
     }
 
+    this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
+    this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
+    this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
+    this.tasksList.id = uuidv4();
+    this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
+  
     this.initEvents();
   }
 
