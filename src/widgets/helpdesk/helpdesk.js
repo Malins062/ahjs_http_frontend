@@ -28,8 +28,8 @@ export default class HelpDeskWidget {
               <h6 class="item__name mb-0">${item.created}</h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
-              <button class="item__edit btn btn-primary btn-sm" title="Редактировать задачу">&#9998;</button>
-              <button class="item__delete btn btn-danger btn-sm ms-1"  data-bs-toggle="modal" 
+              <button class="item__edit btn btn-primary btn-sm rounded-circle" title="Редактировать задачу">&#9998;</button>
+              <button class="item__delete btn btn-danger btn-sm ms-1 rounded-circle" data-bs-toggle="modal" 
                 data-bs-target="#deleteTicketDialog" title="Удалить задачу">&#10005;</button>
           </div>         
           <div class="col-md-1"></div>
@@ -80,7 +80,13 @@ export default class HelpDeskWidget {
   }
 
   static get overlayHTML() {
-    return `<div class="${STYLE_HIDDEN}" id="overlay"></div>`;
+    return `<div class="overlay ${STYLE_HIDDEN}" id="overlay"></div>`;
+    // return `<div class="" id="overlay"></div>`;
+  }
+
+  static get loadingHTML() {
+    return `<div class="loadingProcess ${STYLE_HIDDEN}" id="loadingProcess"></div>`;
+    // return `<div class="" id="loadingProcess"></div>`;
   }
 
   static get formTicketDeleteHTML() {
@@ -93,7 +99,7 @@ export default class HelpDeskWidget {
           <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button type="submit" value="cancel" class="btn btn-secondary">Отмена</button>
+          <button type="button" value="cancel" class="cancel-button btn btn-secondary">Отмена</button>
           <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
@@ -115,7 +121,7 @@ export default class HelpDeskWidget {
           <textarea class="form-control" required id="inputDescription" type="text" rows="3"></textarea>
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button type="submit" value="cancel" class="btn btn-secondary">Отмена</button>
+          <button type="button" value="cancel" class="cancel-button btn btn-secondary">Отмена</button>
           <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
@@ -183,7 +189,11 @@ export default class HelpDeskWidget {
   }
 
   static get overlaySelector() {
-    return `[data-id="overlay"]`;
+    return `.overlay`;
+  }
+
+  static get loadingSelector() {
+    return `.loadingProcess`;
   }
 
   static get formTicketSelector() {
@@ -192,6 +202,10 @@ export default class HelpDeskWidget {
 
   static get formTicketDeleteSelector() {
     return '.form-ticket-delete';
+  }
+
+  static get cancelButtonSelector() {
+    return '.cancel-button';
   }
 
 
@@ -204,6 +218,7 @@ export default class HelpDeskWidget {
     }
 
     this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
+    this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
     this.tasksList.id = uuidv4();
@@ -216,7 +231,6 @@ export default class HelpDeskWidget {
     // Обработка событий по нажатию на кнопку добавить Тикет
     const buttonItemAdd = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
     this.onClickItemAdd = this.onClickItemAdd.bind(this);
-    console.log(buttonItemAdd);
     buttonItemAdd.addEventListener('click', () => this.onClickItemAdd());
 
     // Обработка событий на каждой задаче и списка
@@ -276,12 +290,30 @@ export default class HelpDeskWidget {
 
   onClickItemAdd() {
     const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
-    formDialog.classList.remove(STYLE_HIDDEN);
+    const overlay = this.parentEl.querySelector(HelpDeskWidget.overlaySelector);
+    HelpDeskWidget.showFormDialog(formDialog, overlay);
+
+    formDialog.querySelector(HelpDeskWidget.cancelButtonSelector).
+      addEventListener('click', (evt) => {
+        evt.preventDefault();
+        HelpDeskWidget.showFormDialog(formDialog, overlay, true);  
+      });
 
     formDialog.addEventListener('submit', (evt) =>{
       evt.preventDefault();
-      formDialog.classList.add(STYLE_HIDDEN);
+      HelpDeskWidget.showFormDialog(formDialog, overlay, true);
     });
+  }
+
+  static showFormDialog(form, overlay, isHidden=false) {
+    console.log(form, overlay);
+    if (!isHidden) {
+      form.classList.remove(STYLE_HIDDEN);
+      overlay.classList.remove(STYLE_HIDDEN);
+    } else {
+      form.classList.add(STYLE_HIDDEN);
+      overlay.classList.add(STYLE_HIDDEN);
+    }
   }
 
 }
