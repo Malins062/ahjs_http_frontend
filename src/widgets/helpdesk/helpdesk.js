@@ -1,6 +1,8 @@
 import './helpdesk.css';
 import { v4 as uuidv4 } from 'uuid';
 
+// Наименование стиля для скрытия объекта
+const STYLE_HIDDEN = 'hidden';
 
 export default class HelpDeskWidget {
   constructor(parentEl, urlServer, tasksList = []) {
@@ -20,10 +22,10 @@ export default class HelpDeskWidget {
               </div>
             </div>
             <div class="col-md-7 d-flex justify-content-start">
-              <h5 class="item__name mb-0">${item.name}</h5>
+              <h6 class="item__name mb-0">${item.name}</h6>
             </div>
             <div class="col-md-3 d-flex justify-content-center">
-              <h5 class="item__name mb-0">${item.created}</h5>
+              <h6 class="item__name mb-0">${item.created}</h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
               <button class="item__edit btn btn-primary btn-sm" title="Редактировать задачу">&#9998;</button>
@@ -59,7 +61,7 @@ export default class HelpDeskWidget {
                 <h5 class="tasks__title mb-0 align-items-left">${tasksList.title}</h5>
               </div>
               <div class="col-md-3 d-flex justify-content-end">
-                <button class="tasks__add btn btn-success btn-sm" 
+                <button class="item__add btn btn-success btn-sm" 
                   title="Добавить новую задачу">
                   &#10009; Добавить тикет
                 </button>
@@ -78,12 +80,12 @@ export default class HelpDeskWidget {
   }
 
   static get overlayHTML() {
-    return `<div class="hidden" id="overlay"></div>`;
+    return `<div class="${STYLE_HIDDEN}" id="overlay"></div>`;
   }
 
   static get formTicketDeleteHTML() {
     return `
-      <form class="form-ticket-delete row g-3 hidden">
+      <form class="form-ticket-delete row g-3 ${STYLE_HIDDEN}">
         <div class="col-12">
           <div class="d-flex justify-content-center">
             <h5>Удалить тикет</h5>
@@ -91,8 +93,8 @@ export default class HelpDeskWidget {
           <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button type="button" class="btn btn-secondary">Отмена</button>
-          <button type="submit" class="btn btn-primary ms-2">ОК</button>
+          <button type="submit" value="cancel" class="btn btn-secondary">Отмена</button>
+          <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
       `;
@@ -100,21 +102,21 @@ export default class HelpDeskWidget {
 
   static get formTicketHTML() {
     return `
-      <form class="form-ticket row g-3 hidden">
+      <form class="form-ticket row g-3 ${STYLE_HIDDEN}">
         <div class="col-12 d-flex justify-content-center">
           <h5>Изменить тикет</h5>
         </div>
         <div class="col-12">
           <label for="inputName" class="form-label">Краткое описание</label>
-          <input type="text" class="form-control" id="inputName">
+          <input type="text" class="form-control" required id="inputName">
         </div>
         <div class="col-12">
           <label for="inputDescription" class="form-label">Подробное описание</label>
-          <textarea class="form-control" id="inputDescription" type="text" rows="3"></textarea>
+          <textarea class="form-control" required id="inputDescription" type="text" rows="3"></textarea>
         </div>
         <div class="col-12 d-flex justify-content-end">
-          <button type="button" class="btn btn-secondary">Отмена</button>
-          <button type="submit" class="btn btn-primary ms-2">ОК</button>
+          <button type="submit" value="cancel" class="btn btn-secondary">Отмена</button>
+          <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
         </div>
       </form>
       `;
@@ -124,7 +126,7 @@ export default class HelpDeskWidget {
     return `[data-id="${id}"]`;
   }
 
-  static get showCardSelector() {
+  static get itemAddSelector() {
     return '.item__add';
   }
 
@@ -211,26 +213,14 @@ export default class HelpDeskWidget {
   }
 
   initEvents() {
+    // Обработка событий по нажатию на кнопку добавить Тикет
+    const buttonItemAdd = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
+    this.onClickItemAdd = this.onClickItemAdd.bind(this);
+    console.log(buttonItemAdd);
+    buttonItemAdd.addEventListener('click', () => this.onClickItemAdd());
+
+    // Обработка событий на каждой задаче и списка
     const tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
-
-    // // Отработка событий на добавлении новой карточки-задачи
-    // const showCardItem = tasksCard.querySelector(TasksListWidget.showCardSelector);
-    // const addNewItem = tasksCard.querySelector(TasksListWidget.addCardSelector);
-    // const closeCardItem = tasksCard.querySelector(TasksListWidget.closeCardSelector);
-
-    // showCardItem.addEventListener('click', (evt) => this.onClickShowCard(evt, tasksCard));
-    // addNewItem.addEventListener('click', (evt) => this.onClickAddCard(evt, tasksCard, tasksListItems));
-    // closeCardItem.addEventListener('click', (evt) => this.onClickCloseCard(evt, tasksCard));
-
-    // this.onDragEnter = this.onDragEnter.bind(this);
-    // this.onDragLeave = this.onDragLeave.bind(this);
-    // this.onDrop = this.onDrop.bind(this);
-    // this.onDragOver = this.onDragOver.bind(this);
-    // tasksListItems.addEventListener('dragenter', this.onDragEnter);
-    // tasksListItems.addEventListener('dragleave', this.onDragLeave);
-    // tasksListItems.addEventListener('drop', this.onDrop);
-    // tasksListItems.addEventListener('dragover', this.onDragOver);
-
     this.initItemsEvents(tasksListItems);
   }
 
@@ -282,6 +272,16 @@ export default class HelpDeskWidget {
     // this.onDragEnd = this.onDragEnd.bind(this);
     // item.addEventListener('dragstart', this.onDragStart);
     // item.addEventListener('dragend', this.onDragEnd);
+  }
+
+  onClickItemAdd() {
+    const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
+    formDialog.classList.remove(STYLE_HIDDEN);
+
+    formDialog.addEventListener('submit', (evt) =>{
+      evt.preventDefault();
+      formDialog.classList.add(STYLE_HIDDEN);
+    });
   }
 
 }

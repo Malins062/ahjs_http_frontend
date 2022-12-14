@@ -44,7 +44,7 @@ const tasksList = {
 };
 
 
-const helpDeskWidget = new HelpDeskWidget(document.querySelector('#widget-container'), null, tasksList);
+const helpDeskWidget = new HelpDeskWidget(document.querySelector('#widget-container'), URL_SERVER, tasksList);
 helpDeskWidget.bindToDOM();
 
 // const subscribeWidget = document.querySelector('[data-widget=subscribe]');
