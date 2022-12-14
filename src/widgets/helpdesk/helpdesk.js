@@ -28,8 +28,8 @@ export default class HelpDeskWidget {
               <h6 class="item__name mb-0">${item.created}</h6>
             </div>
             <div class="col-md-1 d-flex justify-content-end">
-              <button class="item__edit btn btn-primary btn-sm rounded-circle" title="Редактировать задачу">&#9998;</button>
-              <button class="item__delete btn btn-danger btn-sm ms-1 rounded-circle" data-bs-toggle="modal" 
+              <button class="item__edit btn btn-primary btn-sm" title="Редактировать задачу">&#9998;</button>
+              <button class="item__delete btn btn-danger btn-sm ms-1" data-bs-toggle="modal" 
                 data-bs-target="#deleteTicketDialog" title="Удалить задачу">&#10005;</button>
           </div>         
           <div class="col-md-1"></div>
@@ -153,7 +153,11 @@ export default class HelpDeskWidget {
   }
 
   static get delItemSelector() {
-    return '.item__close';
+    return '.item__delete';
+  }
+
+  static get editItemSelector() {
+    return '.item__edit';
   }
 
   static get descriptionItemSelector() {
@@ -228,6 +232,12 @@ export default class HelpDeskWidget {
   }
 
   initEvents() {
+    // Определение фона для диалогов
+    this.overlay = this.parentEl.querySelector(HelpDeskWidget.overlaySelector);
+
+    // Определение поргресс-бара
+    this.loadingProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
+
     // Обработка событий по нажатию на кнопку добавить Тикет
     const buttonItemAdd = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
     this.onClickItemAdd = this.onClickItemAdd.bind(this);
@@ -255,53 +265,36 @@ export default class HelpDeskWidget {
     });
 
 
-    // // Событие удаления задачи
-    // const closeButton = item.querySelector(TasksListWidget.delItemSelector);
-    // closeButton.addEventListener('click', () => {
-    //   item.remove();
-    //   this.saveItems();
-    // });
+    // Событие удаления задачи
+    const deleteItem= item.querySelector(HelpDeskWidget.delItemSelector);
+    deleteItem.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketDeleteSelector);
+      HelpDeskWidget.showFormDialog(formDialog, this.overlay);
+    });
 
-    // // Событие входа в зону наведения курсора на задачу
-    // item.addEventListener('mouseover', (evt) => {
-    //   evt.preventDefault();
-    //   if (closeButton.classList.contains('hidden')) {
-    //     closeButton.classList.remove('hidden');
-    //   }
-    // });
-
-    // // Событие выхода из зоны наведения курсора на задачу
-    // item.addEventListener('mouseout', (evt) => {
-    //   evt.preventDefault();
-    //   const delButtons = document.querySelectorAll(TasksListWidget.delItemSelector);
-    //   delButtons.forEach((delButton) => {
-    //     if (delButton && !delButton.classList.contains('hidden')) {
-    //       delButton.classList.add('hidden');
-    //     }
-    //   });
-    // });
-
-    // this.onDrag = this.onDrag.bind(this);
-    // this.onDragStart = this.onDragStart.bind(this);
-    // this.onDragEnd = this.onDragEnd.bind(this);
-    // item.addEventListener('dragstart', this.onDragStart);
-    // item.addEventListener('dragend', this.onDragEnd);
+    // Событие редактирования задачи
+    const editItem = item.querySelector(HelpDeskWidget.editItemSelector);
+    editItem.addEventListener('click', (evt) => {
+      evt.stopPropagation();
+      const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
+      HelpDeskWidget.showFormDialog(formDialog, this.overlay);
+    });
   }
 
   onClickItemAdd() {
     const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
-    const overlay = this.parentEl.querySelector(HelpDeskWidget.overlaySelector);
-    HelpDeskWidget.showFormDialog(formDialog, overlay);
+    HelpDeskWidget.showFormDialog(formDialog, this.overlay);
 
     formDialog.querySelector(HelpDeskWidget.cancelButtonSelector).
       addEventListener('click', (evt) => {
         evt.preventDefault();
-        HelpDeskWidget.showFormDialog(formDialog, overlay, true);  
+        HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);  
       });
 
     formDialog.addEventListener('submit', (evt) =>{
       evt.preventDefault();
-      HelpDeskWidget.showFormDialog(formDialog, overlay, true);
+      HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);
     });
   }
 
