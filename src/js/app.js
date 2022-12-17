@@ -1,4 +1,4 @@
-import HelpDeskWidget from "../widgets/helpdesk/helpdesk";
+import HelpDeskWidget from '../widgets/helpdesk/helpdesk';
 
 // Адрес сервера
 const URL_SERVER = 'localhost:7070';
@@ -26,25 +26,24 @@ const tasksList = {
       name: 'Поменять краску в принтере, каб.404',
       description: 'Закончилась краска в принтере, модель Epson-CJ300',
       status: true,
-      created: '10.03.2022 08:40'
+      created: '10.03.2022 08:40',
     },
     {
       name: 'Переустановить OC Linux, каб.204',
       description: 'Слетела операционная система, требуется переустановка',
       status: true,
-      created: '22.11.2022 13:10'
+      created: '22.11.2022 13:10',
     },
     {
       name: 'Установить обновление KB-32565, каб.6',
       description: 'Вышло критическое обновление Windows-10, требуется установка обновления',
       status: false,
-      created: '08.12.2022 10:00'
+      created: '08.12.2022 10:00',
     },
-  ]
+  ],
 };
 
-
-const helpDeskWidget = new HelpDeskWidget(document.querySelector('#widget-container'), URL_SERVER, tasksList);
+const helpDeskWidget = new HelpDeskWidget(document.querySelector('#widget-container'), URL_SERVER);
 helpDeskWidget.bindToDOM();
 
 // const subscribeWidget = document.querySelector('[data-widget=subscribe]');
