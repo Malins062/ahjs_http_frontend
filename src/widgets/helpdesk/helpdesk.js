@@ -260,6 +260,7 @@ export default class HelpDeskWidget {
       return;
     }
 
+    this.tasksList.items = this.getAllTickets();
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
@@ -382,5 +383,21 @@ export default class HelpDeskWidget {
     }
 
     const submitButton = dialog.querySelector(HelpDeskWidget.submitButtonSelector);
+  }
+
+  getAllTickets() {
+    const xhr = new XMLHttpRequest();
+    
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) return;
+      
+      console.log(xhr.responseText);
+    }
+    
+    xhr.open('GET', `${this.urlServer}?method=allTickets`);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.send();
+
+    return xhr.responseText;
   }
 }
