@@ -4,6 +4,16 @@ import { v4 as uuidv4 } from 'uuid';
 // Наименование стиля для скрытия объекта
 const STYLE_HIDDEN = 'hidden';
 
+const FORMS = {
+  title: [
+    'Добавить тикет',
+    'Изменить тикет',
+    'Удалить тикет'
+  ],
+  idInputName: 'inputName',
+  idInputDescription: 'inputDescription',
+};
+
 export default class HelpDeskWidget {
   constructor(parentEl, urlServer, tasksList = []) {
     this.parentEl = parentEl;
@@ -79,53 +89,58 @@ export default class HelpDeskWidget {
     `;
   }
 
-  static get overlayHTML() {
-    return `<div class="overlay ${STYLE_HIDDEN}" id="overlay"></div>`;
-    // return `<div class="" id="overlay"></div>`;
-  }
-
   static get loadingHTML() {
-    return `<div class="loadingProcess ${STYLE_HIDDEN}" id="loadingProcess"></div>`;
+    return `
+      <div class="dialog-loading ${STYLE_HIDDEN}">
+        <div class="loading-process" id="loadingProcess"></div>
+      </div>
+    `;
     // return `<div class="" id="loadingProcess"></div>`;
   }
 
   static get formTicketDeleteHTML() {
     return `
-      <form class="form-ticket-delete row g-3 ${STYLE_HIDDEN}">
-        <div class="col-12">
-          <div class="d-flex justify-content-center">
-            <h5>Удалить тикет</h5>
+      <div class="dialog-delete ${STYLE_HIDDEN}">
+        <div class="overlay" id="overlay"></div>
+        <form class="form-ticket-delete row g-3">
+          <div class="col-12">
+            <div class="d-flex justify-content-center">
+              <h5 class="form-title">Удалить тикет</h5>
+            </div>
+            <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
           </div>
-          <p>Вы уверены, что хотите удалить тикет? Это действие не обратимо.</p>
-        </div>
-        <div class="col-12 d-flex justify-content-end">
-          <button type="button" value="cancel" class="cancel-button btn btn-secondary">Отмена</button>
-          <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
-        </div>
-      </form>
+          <div class="col-12 d-flex justify-content-end">
+            <button type="button" value="cancel" class="cancel-button btn btn-secondary">Отмена</button>
+            <button type="submit" value="submit" class="submit-buttom btn btn-primary ms-2">ОК</button>
+          </div>
+        </form>
+      </div>
       `;
   }
 
   static get formTicketHTML() {
     return `
-      <form class="form-ticket row g-3 ${STYLE_HIDDEN}">
+    <div class="dialog-add-edit ${STYLE_HIDDEN}">
+      <div class="overlay" id="overlay"></div>
+      <form class="form-ticket row g-3">
         <div class="col-12 d-flex justify-content-center">
-          <h5>Изменить тикет</h5>
+          <h5 class="form-title">Изменить тикет</h5>
         </div>
         <div class="col-12">
           <label for="inputName" class="form-label">Краткое описание</label>
-          <input type="text" class="form-control" required id="inputName">
+          <input type="text" class="form-control" required data-id="${FORMS.idInputName}">
         </div>
         <div class="col-12">
           <label for="inputDescription" class="form-label">Подробное описание</label>
-          <textarea class="form-control" required id="inputDescription" type="text" rows="3"></textarea>
+          <textarea class="form-control" required data-id="${FORMS.idInputDescription}" type="text" rows="3"></textarea>
         </div>
         <div class="col-12 d-flex justify-content-end">
           <button type="button" value="cancel" class="cancel-button btn btn-secondary">Отмена</button>
-          <button type="submit" value="submit" class="btn btn-primary ms-2">ОК</button>
+          <button type="submit" value="submit" class="submit-buttom btn btn-primary ms-2">ОК</button>
         </div>
       </form>
-      `;
+    </div>
+    `;
   }
 
   static idSelector(id) {
@@ -140,17 +155,17 @@ export default class HelpDeskWidget {
     return '.tasks__item';
   }
 
-  static get itemClass() {
-    return 'tasks__item';
-  }
+  // static get itemClass() {
+  //   return 'tasks__item';
+  // }
 
   static get listItemsSelector() {
     return '.tasks__list';
   }
 
-  static get listItemsClass() {
-    return 'tasks__list';
-  }
+  // static get listItemsClass() {
+  //   return 'tasks__list';
+  // }
 
   static get delItemSelector() {
     return '.item__delete';
@@ -160,37 +175,33 @@ export default class HelpDeskWidget {
     return '.item__edit';
   }
 
-  static get descriptionItemSelector() {
-    return '.item__description';
-  }
+  // static get delItemClass() {
+  //   return 'item__close';
+  // }
 
-  static get delItemClass() {
-    return 'item__close';
-  }
+  // static get cardSelector() {
+  //   return '.tasks__card';
+  // }
 
-  static get cardSelector() {
-    return '.tasks__card';
-  }
+  // static get cardTitleSelector() {
+  //   return '.tasks__title';
+  // }
 
-  static get cardTitleSelector() {
-    return '.tasks__title';
-  }
+  // static get closeCardSelector() {
+  //   return '.new__item__close';
+  // }
 
-  static get closeCardSelector() {
-    return '.new__item__close';
-  }
+  // static get addCardSelector() {
+  //   return '.new__item__add';
+  // }
 
-  static get addCardSelector() {
-    return '.new__item__add';
-  }
+  // static get cardDivSelector() {
+  //   return '.item__card';
+  // }
 
-  static get cardDivSelector() {
-    return '.item__card';
-  }
-
-  static get textNewItemSelector() {
-    return '.new__item__text';
-  }
+  // static get textNewItemSelector() {
+  //   return '.new__item__text';
+  // }
 
   static get overlaySelector() {
     return `.overlay`;
@@ -198,6 +209,14 @@ export default class HelpDeskWidget {
 
   static get loadingSelector() {
     return `.loadingProcess`;
+  }
+
+  static get descriptionItemSelector() {
+    return '.item__description';
+  }
+
+  static get nameItemSelector() {
+    return '.item__name';
   }
 
   static get formTicketSelector() {
@@ -208,8 +227,24 @@ export default class HelpDeskWidget {
     return '.form-ticket-delete';
   }
 
+  static get formTitleSelector() {
+    return '.form-title';
+  }
+
+  static get dialogDeleteSelector() {
+    return '.dialog-delete';
+  }
+
+  static get dialogAddEditSelector() {
+    return '.dialog-add-edit';
+  }
+
   static get cancelButtonSelector() {
     return '.cancel-button';
+  }
+
+  static get submitButtonSelector() {
+    return '.submit-button';
   }
 
 
@@ -221,7 +256,7 @@ export default class HelpDeskWidget {
       return;
     }
 
-    this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
+    // this.parentEl.innerHTML += HelpDeskWidget.overlayHTML;
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
@@ -232,16 +267,13 @@ export default class HelpDeskWidget {
   }
 
   initEvents() {
-    // Определение фона для диалогов
-    this.overlay = this.parentEl.querySelector(HelpDeskWidget.overlaySelector);
-
-    // Определение поргресс-бара
-    this.loadingProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
-
     // Обработка событий по нажатию на кнопку добавить Тикет
     const buttonItemAdd = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
-    this.onClickItemAdd = this.onClickItemAdd.bind(this);
-    buttonItemAdd.addEventListener('click', () => this.onClickItemAdd());
+    // this.onClickItemAdd = this.onClickItemAdd.bind(this);
+    buttonItemAdd.addEventListener('click', () => {
+      const dialogAddEdit = this.parentEl.querySelector(HelpDeskWidget.dialogAddEditSelector);
+      HelpDeskWidget.showFormDialog(dialogAddEdit, 0);     
+    });
 
     // Обработка событий на каждой задаче и списка
     const tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
@@ -269,44 +301,81 @@ export default class HelpDeskWidget {
     const deleteItem= item.querySelector(HelpDeskWidget.delItemSelector);
     deleteItem.addEventListener('click', (evt) => {
       evt.stopPropagation();
-      const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketDeleteSelector);
-      HelpDeskWidget.showFormDialog(formDialog, this.overlay);
+      const dialogDelete = this.parentEl.querySelector(HelpDeskWidget.dialogDeleteSelector);
+      HelpDeskWidget.showFormDialog(dialogDelete, 2);
     });
 
     // Событие редактирования задачи
     const editItem = item.querySelector(HelpDeskWidget.editItemSelector);
     editItem.addEventListener('click', (evt) => {
       evt.stopPropagation();
-      const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
-      HelpDeskWidget.showFormDialog(formDialog, this.overlay);
+      const dialogAddEdit = this.parentEl.querySelector(HelpDeskWidget.dialogAddEditSelector);
+      HelpDeskWidget.showFormDialog(dialogAddEdit, 1, item);
     });
   }
 
-  onClickItemAdd() {
-    const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
-    HelpDeskWidget.showFormDialog(formDialog, this.overlay);
+  // onClickItemAdd() {
+  //   const formDialog = this.parentEl.querySelector(HelpDeskWidget.formTicketSelector);
+  //   HelpDeskWidget.showFormDialog(formDialog );
 
-    formDialog.querySelector(HelpDeskWidget.cancelButtonSelector).
-      addEventListener('click', (evt) => {
-        evt.preventDefault();
-        HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);  
-      });
+  //   formDialog.querySelector(HelpDeskWidget.cancelButtonSelector).
+  //     addEventListener('click', (evt) => {
+  //       evt.preventDefault();
+  //       HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);  
+  //     });
 
-    formDialog.addEventListener('submit', (evt) =>{
-      evt.preventDefault();
-      HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);
-    });
-  }
+  //   formDialog.addEventListener('submit', (evt) =>{
+  //     evt.preventDefault();
+  //     HelpDeskWidget.showFormDialog(formDialog, this.overlay, true);
+  //   });
+  // }
 
-  static showFormDialog(form, overlay, isHidden=false) {
-    console.log(form, overlay);
-    if (!isHidden) {
-      form.classList.remove(STYLE_HIDDEN);
-      overlay.classList.remove(STYLE_HIDDEN);
-    } else {
-      form.classList.add(STYLE_HIDDEN);
-      overlay.classList.add(STYLE_HIDDEN);
+  static showFormDialog(dialog, typeDialog, item=null) {
+    console.log(dialog, typeDialog, item);
+    if (typeDialog < 0 || typeDialog > 2) return;
+
+    dialog.classList.remove(STYLE_HIDDEN);
+    // Отработка кнопки "Отмена"
+    const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
+    cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
+
+    // Заголовок формы
+    const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
+    titleForm.innerText = FORMS.title[typeDialog];
+
+    switch (typeDialog) {
+      // Диалог добавления нового тикета
+      case 0: {
+        const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
+        inputName.value = '';
+
+        const inputDescription = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputDescription));
+        inputDescription.value = '';
+        return;
+      }
+
+        // Диалог редактирования тикета
+      case 1: {
+        const textInputName = item.querySelector(HelpDeskWidget.nameItemSelector);
+        const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
+        console.log(inputName, textInputName);
+        inputName.value = textInputName.innerText;
+
+        const textInputDescription = item.querySelector(HelpDeskWidget.textInputDescription);
+        const inputDescription = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputDescription));
+        inputDescription.value = textInputDescription.innerText;
+        return;
+      }
+
+        // Диалог удаления тикета
+      case 2:
+        return;
+
+      default:
+        return;
     }
+
+    const submitButton = dialog.querySelector(HelpDeskWidget.submitButtonSelector);
   }
 
 }
