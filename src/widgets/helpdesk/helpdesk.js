@@ -236,6 +236,10 @@ export default class HelpDeskWidget {
     return '.form-title';
   }
 
+  static get dialogLoadingSelector() {
+    return '.dialog-loading';
+  }
+
   static get dialogDeleteSelector() {
     return '.dialog-delete';
   }
@@ -261,10 +265,11 @@ export default class HelpDeskWidget {
     }
 
     this.tasksList.items = this.getAllTickets();
+    console.log(this.tasksList);
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
-    this.tasksList.id = uuidv4();
+    // this.tasksList.id = uuidv4();
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
 
     this.initEvents();
@@ -386,18 +391,38 @@ export default class HelpDeskWidget {
   }
 
   getAllTickets() {
+    const formLoading = this.parentEl.querySelector(HelpDeskWidget.dialogLoadingSelector);
+    console.log(this.parentEl, HelpDeskWidget.dialogLoadingSelector, formLoading);
+    const answer = HelpDeskWidget.sendGetRequest('GET', this.urlServer, 'allTickets', formLoading);
+    console.log(answer); 
+    return answer;
+  }
+
+  static sendGetRequest(method, url, body, formLoading) {
     const xhr = new XMLHttpRequest();
-    
+    const isDone = false;
+    // console.log(formLoading);
+
+
     xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) return;
+      if (xhr.readyState !== 4) {
+        // formLoading.classList.remove(STYLE_HIDDEN);
+        return;
+      } 
       
-      console.log(xhr.responseText);
+      // formLoading.classList.add(STYLE_HIDDEN);
+      console.log('Response text: ' + xhr.responseText);
+      isDone = true;
     }
     
-    xhr.open('GET', `${this.urlServer}?method=allTickets`);
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    const paramString = `${url}?method=${body}`;
+    xhr.open(method, paramString);
+    // xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    
+    console.log(`Send request: ${paramString}`);
     xhr.send();
 
+    // while (!isDone) {};
     return xhr.responseText;
   }
 }
