@@ -264,7 +264,7 @@ export default class HelpDeskWidget {
       return;
     }
 
-    this.tasksList.items = this.getAllTickets();
+    this.getAllTickets();
     console.log(this.tasksList);
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
@@ -393,14 +393,39 @@ export default class HelpDeskWidget {
   getAllTickets() {
     const formLoading = this.parentEl.querySelector(HelpDeskWidget.dialogLoadingSelector);
     console.log(this.parentEl, HelpDeskWidget.dialogLoadingSelector, formLoading);
-    const answer = HelpDeskWidget.sendGetRequest('GET', this.urlServer, 'allTickets', formLoading);
-    console.log(answer); 
-    return answer;
+    // const answer = HelpDeskWidget.sendGetRequest('GET', this.urlServer, 'allTickets', formLoading);
+
+    const method = 'GET';
+    const body = 'allTickets';
+    const paramString = `${this.urlServer}?method=${body}`;
+    const tasksList = this.tasksList;
+    
+    const xhr = new XMLHttpRequest();
+    xhr.open(method, paramString);
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
+    xhr.onreadystatechange = function() {
+      if (xhr.readyState !== 4) {
+        // formLoading.classList.remove(STYLE_HIDDEN);
+        return;
+      } 
+
+      // console.log('XHR: ', xhr.responseText, xhr.status);
+      if (xhr.status == 202) {
+        console.log('TasksList: ', tasksList);
+        tasksList.items = xhr.responseText; 
+        console.log('Response text: ' + xhr.responseText);
+      }
+      
+      // formLoading.classList.add(STYLE_HIDDEN);
+    }
+    
+    console.log(`Send request: ${paramString}`);
+    xhr.send();
   }
 
   static sendGetRequest(method, url, body, formLoading) {
     const xhr = new XMLHttpRequest();
-    const isDone = false;
     // console.log(formLoading);
 
 
@@ -412,17 +437,15 @@ export default class HelpDeskWidget {
       
       // formLoading.classList.add(STYLE_HIDDEN);
       console.log('Response text: ' + xhr.responseText);
-      isDone = true;
     }
     
     const paramString = `${url}?method=${body}`;
     xhr.open(method, paramString);
-    // xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     
     console.log(`Send request: ${paramString}`);
     xhr.send();
 
-    // while (!isDone) {};
     return xhr.responseText;
   }
 }
