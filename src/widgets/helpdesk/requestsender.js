@@ -28,9 +28,9 @@ export default class RequestSender {
             }
         }
 
-        // if (formProcess.form) {
-        //     formProcess.form.classList.add(formProcess.hide);
-        // }
+        if (formProcess.form) {
+            formProcess.form.classList.add(formProcess.hide);
+        }
 
         return p;
     }

@@ -104,8 +104,8 @@ export default class HelpDeskWidget {
 
   static get loadingHTML() {
     return `
-      <div class="form-processing ${STYLE_HIDDEN}">
-        <div class="loading-process" id="loadingProcess"></div>
+      <div class="form-processing overlay ${STYLE_HIDDEN}">
+        <div class="loadingProcess" id="loadingProcess"></div>
       </div>
     `;
     // return `<div class="" id="loadingProcess"></div>`;
