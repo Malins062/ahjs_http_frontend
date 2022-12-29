@@ -1,5 +1,6 @@
 import './helpdesk.css';
 import { v4 as uuidv4 } from 'uuid';
+import RequestSender from './requestsender';
 
 // Наименование стиля для скрытия объекта
 const STYLE_HIDDEN = 'hidden';
@@ -257,14 +258,14 @@ export default class HelpDeskWidget {
   }
 
   // Разметка HTML и отслеживание событий
-  bindToDOM() {
+  async bindToDOM() {
     // Отрисовка HTML
     this.parentEl.innerHTML = '';
     if (!this.urlServer) {
       return;
     }
 
-    this.getAllTickets();
+    await this.getAllTickets();
     console.log(this.tasksList);
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
@@ -390,62 +391,21 @@ export default class HelpDeskWidget {
     const submitButton = dialog.querySelector(HelpDeskWidget.submitButtonSelector);
   }
 
-  getAllTickets() {
+  async getAllTickets() {
     const formLoading = this.parentEl.querySelector(HelpDeskWidget.dialogLoadingSelector);
-    console.log(this.parentEl, HelpDeskWidget.dialogLoadingSelector, formLoading);
+    console.log(this.parentEl, formLoading);
     // const answer = HelpDeskWidget.sendGetRequest('GET', this.urlServer, 'allTickets', formLoading);
 
-    const method = 'GET';
-    const body = 'allTickets';
-    const paramString = `${this.urlServer}?method=${body}`;
-    const tasksList = this.tasksList;
+    const requester = new RequestSender('GET', this.urlServer, 'allTickets', 
+      {form: formLoading, style: STYLE_HIDDEN});
+    const answer = await requester.sendRequest(); 
+
+    console.log(`answer: ${answer.status} ${answer.responseText}`);
     
-    const xhr = new XMLHttpRequest();
-    xhr.open(method, paramString);
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) {
-        // formLoading.classList.remove(STYLE_HIDDEN);
-        return;
-      } 
-
-      // console.log('XHR: ', xhr.responseText, xhr.status);
-      if (xhr.status == 202) {
-        console.log('TasksList: ', tasksList);
-        tasksList.items = xhr.responseText; 
-        console.log('Response text: ' + xhr.responseText);
-      }
-      
-      // formLoading.classList.add(STYLE_HIDDEN);
+    if (answer.status === 202) {
+      this.tasksList.items = JSON.parse(answer.responseText);
     }
-    
-    console.log(`Send request: ${paramString}`);
-    xhr.send();
+
   }
 
-  static sendGetRequest(method, url, body, formLoading) {
-    const xhr = new XMLHttpRequest();
-    // console.log(formLoading);
-
-
-    xhr.onreadystatechange = function() {
-      if (xhr.readyState !== 4) {
-        // formLoading.classList.remove(STYLE_HIDDEN);
-        return;
-      } 
-      
-      // formLoading.classList.add(STYLE_HIDDEN);
-      console.log('Response text: ' + xhr.responseText);
-    }
-    
-    const paramString = `${url}?method=${body}`;
-    xhr.open(method, paramString);
-    xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    
-    console.log(`Send request: ${paramString}`);
-    xhr.send();
-
-    return xhr.responseText;
-  }
 }
