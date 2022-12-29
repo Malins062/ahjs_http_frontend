@@ -22,7 +22,10 @@ const FORMS = {
 export default class HelpDeskWidget {
   constructor(parentEl, urlServer, title = DEFAULT_TITLE) {
     this.parentEl = parentEl;
+    
     this.urlServer = urlServer;
+    this.XHR = new RequestSender(this.urlServer);
+
     this.tasksList = {
       title,
       items: [],
@@ -101,7 +104,7 @@ export default class HelpDeskWidget {
 
   static get loadingHTML() {
     return `
-      <div class="dialog-loading ${STYLE_HIDDEN}">
+      <div class="form-processing ${STYLE_HIDDEN}">
         <div class="loading-process" id="loadingProcess"></div>
       </div>
     `;
@@ -214,7 +217,7 @@ export default class HelpDeskWidget {
   // }
 
   static get loadingSelector() {
-    return '.loadingProcess';
+    return '.form-processing';
   }
 
   static get descriptionItemSelector() {
@@ -265,12 +268,21 @@ export default class HelpDeskWidget {
       return;
     }
 
-    await this.getAllTickets();
-    console.log(this.tasksList);
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
+
+    const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
+    this.formProcess = {
+      form: formProcess, 
+      hide: STYLE_HIDDEN
+    };
+    console.log(`formProcess: ${this.formProcess}`);
+
+    await this.getAllTickets();
+    console.log(this.tasksList);
     // this.tasksList.id = uuidv4();
+
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
 
     this.initEvents();
@@ -392,18 +404,12 @@ export default class HelpDeskWidget {
   }
 
   async getAllTickets() {
-    const formLoading = this.parentEl.querySelector(HelpDeskWidget.dialogLoadingSelector);
-    console.log(this.parentEl, formLoading);
-    // const answer = HelpDeskWidget.sendGetRequest('GET', this.urlServer, 'allTickets', formLoading);
+    console.log(`formProcess: ${this.formProcess.form}`);
+    const answer = await this.XHR.sendRequest('GET', 'allTickets', this.formProcess); 
 
-    const requester = new RequestSender('GET', this.urlServer, 'allTickets', 
-      {form: formLoading, style: STYLE_HIDDEN});
-    const answer = await requester.sendRequest(); 
-
-    console.log(`answer: ${answer.status} ${answer.responseText}`);
-    
     if (answer.status === 202) {
       this.tasksList.items = JSON.parse(answer.responseText);
+      console.log(`answer: ${answer.status} ${answer.responseText}`);
     }
 
   }
