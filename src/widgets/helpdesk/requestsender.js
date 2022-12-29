@@ -1,43 +1,18 @@
 export default class RequestSender {
-    constructor(method, url, body, formProcess=null) {
-        this.method = method;
-        this.url = url;
-        this.query = `${this.url}?method=${body}`;
+    constructor(urlServer, formProcess=null) {
+        this.url = urlServer;
         this.formProcess = formProcess;
-
-        this.answer = {
-            status: 0,
-            response: undefined
-        };
-
-        console.log(method, url, body, formProcess);
-
         this.xhr = new XMLHttpRequest();
-        this.xhr.open(this.method, this.query);
-        this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        
-        // this.onReadyStateChange = this.onReadyStateChange.bind(this);
-        // this.xhr.addEventListener('readystatechange', this.onReadyStateChange);
     }
 
-    // onReadyStateChange() {
-    //     console.log('XHR: ', this.xhr.readyState, this.xhr.status);
-    //     console.log('this.answer: ', this.answer);
-
-    //     if (this.xhr.readyState !== 4) {
-    //         return;
-    //       } 
-
-    //     this.answer.status = this.xhr.status;
-    //     if (this.xhr.status == 202) {
-    //         this.answer.response = JSON.parse(this.xhr.responseText);
-    //     }
-    // }
-
-    async sendRequest() {
+    async sendRequest(method, body) {
         if (this.formProcess.form) {
             formProcess.form.classList.remove(formProcess.style);
         }
+
+        const query = `${this.url}?method=${body}`;
+        this.xhr.open(method, query);
+        this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     
         this.send();
 
@@ -59,30 +34,4 @@ export default class RequestSender {
 
         return p;
     }
-
-    send() {
-        console.log(`Send request: ${this.query}`);
-        this.xhr.send();
-        this.answer.status = 0;
-    }
-
-    // async sendRequest() {
-    //     const Http = new XMLHttpRequest();
-    //     const url='http://localhost:8000/';
-    //     Http.open("GET", url);
-    //     Http.send();
-
-    //     if (Http.readyState === XMLHttpRequest.DONE) {
-    //         return Http;
-    //     }
-
-    //     let res;
-    //     const p = new Promise((r) => res = r);
-    //     Http.onreadystatechange = () => {
-    //         if (Http.readyState === XMLHttpRequest.DONE) {
-    //             res(Http);
-    //         }
-    //     }
-    //     return p;
-    // }
 }
