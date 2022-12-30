@@ -1,13 +1,13 @@
 export default class RequestSender {
-    constructor(urlServer) {
+    constructor(urlServer, formProcess=null) {
         this.url = urlServer;
+        this.formProcess = formProcess;
         this.xhr = new XMLHttpRequest();
     }
 
-    async sendRequest(method, body, formProcess=null) {
-        console.log(formProcess.form, formProcess.hide);
-        if (formProcess.form) {
-            formProcess.form.classList.remove(formProcess.hide);
+    async sendRequest(method, body) {
+        if (this.formProcess.form) {
+            this.formProcess.form.classList.remove(this.formProcess.hide);
         }
 
         const query = `${this.url}?method=${body}`;
@@ -24,12 +24,14 @@ export default class RequestSender {
         const p = new Promise((r) => res = r);
         this.xhr.onreadystatechange = () => {
             if (this.xhr.readyState === XMLHttpRequest.DONE) {
-                res(this.xhr);
+                setTimeout(() => {
+                    res(this.xhr);            
+                    if (this.formProcess.form) {
+                        this.formProcess.form.classList.add(this.formProcess.hide);
+                }
+               }, 1000);
+                
             }
-        }
-
-        if (formProcess.form) {
-            formProcess.form.classList.add(formProcess.hide);
         }
 
         return p;

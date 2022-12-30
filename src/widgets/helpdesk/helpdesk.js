@@ -1,6 +1,6 @@
 import './helpdesk.css';
 import { v4 as uuidv4 } from 'uuid';
-import RequestSender from './requestsender';
+import RequestSender from '../../js/requestsender';
 
 // Наименование стиля для скрытия объекта
 const STYLE_HIDDEN = 'hidden';
@@ -24,7 +24,6 @@ export default class HelpDeskWidget {
     this.parentEl = parentEl;
     
     this.urlServer = urlServer;
-    this.XHR = new RequestSender(this.urlServer);
 
     this.tasksList = {
       title,
@@ -33,9 +32,8 @@ export default class HelpDeskWidget {
   }
 
   static itemHTML(item) {
-    const id = uuidv4();
     const html = `
-        <li class="tasks__item list-group-item mb-2" draggable="true" data-id="${id}">
+        <li class="tasks__item list-group-item mb-2" draggable="true" data-id="${item.id}">
           <div class="row d-flex">
             <div class="col-md-1">
               <div class="form-check">
@@ -55,20 +53,17 @@ export default class HelpDeskWidget {
           </div>         
           <div class="col-md-1"></div>
           <div class="item__description col-md-7 hidden">
-            <p>${item.description}</p>
+            <p></p>
           </div>
         </li>`;
-    return {
-      innerHTML: html,
-      id,
-    };
+    return html;
   }
 
   static itemsHTML(items) {
     let html = '';
     if (items) {
       items.forEach((item) => {
-        html += this.itemHTML(item).innerHTML;
+        html += this.itemHTML(item);
       });
     }
     return html;
@@ -104,11 +99,11 @@ export default class HelpDeskWidget {
 
   static get loadingHTML() {
     return `
-      <div class="form-processing overlay ${STYLE_HIDDEN}">
-        <div class="loadingProcess" id="loadingProcess"></div>
+      <div class="form-processing ${STYLE_HIDDEN}">
+      <div class="overlay" id="overlay"></div>
+      <div class="loadingProcess" id="loadingProcess"></div>
       </div>
     `;
-    // return `<div class="" id="loadingProcess"></div>`;
   }
 
   static get formTicketDeleteHTML() {
@@ -168,17 +163,9 @@ export default class HelpDeskWidget {
     return '.tasks__item';
   }
 
-  // static get itemClass() {
-  //   return 'tasks__item';
-  // }
-
   static get listItemsSelector() {
     return '.tasks__list';
   }
-
-  // static get listItemsClass() {
-  //   return 'tasks__list';
-  // }
 
   static get delItemSelector() {
     return '.item__delete';
@@ -187,34 +174,6 @@ export default class HelpDeskWidget {
   static get editItemSelector() {
     return '.item__edit';
   }
-
-  // static get delItemClass() {
-  //   return 'item__close';
-  // }
-
-  // static get cardSelector() {
-  //   return '.tasks__card';
-  // }
-
-  // static get cardTitleSelector() {
-  //   return '.tasks__title';
-  // }
-
-  // static get closeCardSelector() {
-  //   return '.new__item__close';
-  // }
-
-  // static get addCardSelector() {
-  //   return '.new__item__add';
-  // }
-
-  // static get cardDivSelector() {
-  //   return '.item__card';
-  // }
-
-  // static get textNewItemSelector() {
-  //   return '.new__item__text';
-  // }
 
   static get loadingSelector() {
     return '.form-processing';
@@ -273,15 +232,12 @@ export default class HelpDeskWidget {
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
 
     const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
-    this.formProcess = {
+    this.XHR = new RequestSender(this.urlServer, {
       form: formProcess, 
       hide: STYLE_HIDDEN
-    };
-    console.log(`formProcess: ${this.formProcess}`);
+    });
 
-    await this.getAllTickets();
-    console.log(this.tasksList);
-    // this.tasksList.id = uuidv4();
+    this.tasksList.items = await this.getAllTickets();
 
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
 
@@ -309,13 +265,21 @@ export default class HelpDeskWidget {
   }
 
   initItemEvents(item) {
-    const descritpion = item.querySelector(HelpDeskWidget.descriptionItemSelector);
+    const divDescription = item.querySelector(HelpDeskWidget.descriptionItemSelector);
+    const idItem = item.dataset.id;
     // Событие по клику задачу
-    item.addEventListener('click', (evt) => {
-      if (!descritpion) {
+    item.addEventListener('click', async (evt) => {
+      if (!divDescription) {
         return;
       }
-      descritpion.classList.toggle('hidden');
+      
+      if (divDescription.classList.contains(STYLE_HIDDEN)) {
+        const pDescription = divDescription.querySelector('p');
+        const description = await this.getTicket(idItem);
+        pDescription.innerText = description.length > 0 ? description[0].description : '';  
+      }
+
+      divDescription.classList.toggle(STYLE_HIDDEN);
     });
 
     // Событие удаления задачи
@@ -404,14 +368,35 @@ export default class HelpDeskWidget {
   }
 
   async getAllTickets() {
-    console.log(`formProcess: ${this.formProcess.form}`);
-    const answer = await this.XHR.sendRequest('GET', 'allTickets', this.formProcess); 
+    const responseText = await this.XHR.sendRequest('GET', 'allTickets'); 
+    return HelpDeskWidget.responseAnswer(responseText);
+  }
 
-    if (answer.status === 202) {
-      this.tasksList.items = JSON.parse(answer.responseText);
-      console.log(`answer: ${answer.status} ${answer.responseText}`);
+  async getTicket(id) {
+    if (!id) {
+      return;
     }
 
+    const responseText = await this.XHR.sendRequest('GET', `ticketById&id=${id}`); 
+    return HelpDeskWidget.responseAnswer(responseText);
+  }
+
+  static responseAnswer(a) {
+    let rAnswer = null;
+
+    if (!(a.status >= 200 && a.status < 300)) {
+      console.error(`Ошибка обращения к серверу (${a.body}): ${a.status}.`);
+    }   
+
+    if (a.status === 202) {
+      try {
+        rAnswer = JSON.parse(a.responseText);
+      } catch (e) {
+        console.error(`${e} Статус: ${a.status}. Тело: ${a.responseText}.`);
+      }
+    }
+
+    return rAnswer;
   }
 
 }
