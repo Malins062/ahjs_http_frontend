@@ -186,6 +186,10 @@ export default class HelpDeskWidget {
     return '.item__name';
   }
 
+  static get statusItemSelector() {
+    return '.item__status';
+  }
+
   static get formTicketSelector() {
     return '.form-ticket';
   }
@@ -281,6 +285,12 @@ export default class HelpDeskWidget {
       }
 
       divDescription.classList.toggle(STYLE_HIDDEN);
+    });
+
+    // Событие изменения статуса задачи
+    const statusItem = item.querySelector(HelpDeskWidget.statusItemSelector);
+    statusItem.addEventListener('click', (evt) => {
+      evt.stopPropagation();
     });
 
     // Событие удаления задачи
