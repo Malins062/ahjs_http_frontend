@@ -5,16 +5,16 @@ export default class RequestSender {
         this.xhr = new XMLHttpRequest();
     }
 
-    async sendRequest(method, body) {
+    async sendRequest(method, query, body=undefined) {
         if (this.formProcess.form) {
             this.formProcess.form.classList.remove(this.formProcess.hide);
         }
 
-        const query = `${this.url}?method=${body}`;
-        this.xhr.open(method, query);
+        const requestText = `${this.url}?${query}`;
+        this.xhr.open(method, requestText);
         this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-    
-        this.xhr.send();
+        console.log(method, requestText, body);
+        this.xhr.send(body);
 
         if (this.xhr.readyState === XMLHttpRequest.DONE) {
             return Http;
@@ -24,13 +24,16 @@ export default class RequestSender {
         const p = new Promise((r) => res = r);
         this.xhr.onreadystatechange = () => {
             if (this.xhr.readyState === XMLHttpRequest.DONE) {
-                setTimeout(() => {
-                    res(this.xhr);            
-                    if (this.formProcess.form) {
-                        this.formProcess.form.classList.add(this.formProcess.hide);
-                }
-               }, 1000);
-                
+            //     setTimeout(() => {
+            //         res(this.xhr);            
+            //         if (this.formProcess.form) {
+            //             this.formProcess.form.classList.add(this.formProcess.hide);
+            //     }
+            //    }, 1000);
+                res(this.xhr);            
+                if (this.formProcess.form) {
+                    this.formProcess.form.classList.add(this.formProcess.hide);
+                }    
             }
         }
 
