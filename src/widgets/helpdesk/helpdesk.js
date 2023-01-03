@@ -315,17 +315,10 @@ export default class HelpDeskWidget {
   async getItemData(id) {
     const data = await this.getTicket(id);
     if (data.length <= 0) {
-      return
+      return;
     }
 
-    console.log(data[0]);
-    return {
-      id: data[0].id,
-      status: data[0].status,
-      name: data[0].name,
-      description: data[0].description,
-      created: data[0].created
-    }
+    return data[0];
   }
 
   showFormDialog(dialog, typeDialog, item = null) {
