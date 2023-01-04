@@ -243,6 +243,7 @@ export default class HelpDeskWidget {
     this.tasksList.items = await this.getAllTickets();
 
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
+    this.tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
 
     this.initEvents();
   }
@@ -257,13 +258,12 @@ export default class HelpDeskWidget {
     });
 
     // Обработка событий на каждой задаче и списка
-    const tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
-    this.initItemsEvents(tasksListItems);
+    this.initItemsEvents();
   }
 
-  initItemsEvents(ul) {
+  initItemsEvents() {
     // Отработка событий на каждой задаче из списка
-    const items = ul.querySelectorAll(HelpDeskWidget.itemSelector);
+    const items = this.tasksListItems.querySelectorAll(HelpDeskWidget.itemSelector);
     items.forEach((item) => this.initItemEvents(item));
   }
 
@@ -312,6 +312,13 @@ export default class HelpDeskWidget {
     });
   }
 
+  addItem(item) {
+    const itemHTML = HelpDeskWidget.itemHTML(item);
+    this.tasksListItems.insertAdjacentHTML('beforeEnd', itemHTML);
+    const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(item.id));
+    this.initItemEvents(liItem);
+  }
+
   async getItemData(id) {
     const data = await this.getTicket(id);
     if (data.length <= 0) {
@@ -351,19 +358,18 @@ export default class HelpDeskWidget {
         dialog.addEventListener('submit', async (evt) => {
           evt.preventDefault();
 
-          // const body = {
-          //   name: inputName.value,
-          //   desciption: inputDescription.value,
-          // }
-
-          const body = new FormData(dialog.querySelector(HelpDeskWidget.formTicketSelector));
+          const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
 
           console.log('Add submit: ' + body);
 
           const result = await this.addTicket(body);
 
-          console.log(result);
           dialog.classList.add(STYLE_HIDDEN);
+          console.log(result);
+
+          if (Object.hasOwn(result, 'id')) {
+            this.addItem(result);
+          }
         });
       }
 
@@ -426,7 +432,7 @@ export default class HelpDeskWidget {
     let rAnswer = null;
 
     if (!(a.status >= 200 && a.status < 300)) {
-      console.error(`Ошибка обращения к серверу (${a.body}): ${a.status}.`);
+      console.error(`Ошибка запроса к серверу (код - ${a.status}): "${a.responseText}"!`);
     }   
 
     if (a.status === 202) {
