@@ -14,6 +14,8 @@
 
 ## HelpDesk: Frontend
 
+[![Build status](https://ci.appveyor.com/api/projects/status/polb9hdhenr5nwrr/branch/main?svg=true)](https://ci.appveyor.com/project/Malins062/ahjs-http-frontend/branch/main)
+
 ### Легенда
 
 API вами написано, пора приступить к своим прямым обязанностям - написанию фронтенда, который будет с этим API работать.

@@ -13,6 +13,7 @@ const FORMS = {
     'Добавить тикет',
     'Изменить тикет',
     'Удалить тикет',
+    'Ошибка',
   ],
   idInputName: 'inputName',
   idInputDescription: 'inputDescription',
@@ -21,7 +22,7 @@ const FORMS = {
 export default class HelpDeskWidget {
   constructor(parentEl, urlServer, title = DEFAULT_TITLE) {
     this.parentEl = parentEl;
-    
+
     this.urlServer = urlServer;
 
     this.tasksList = {
@@ -103,6 +104,25 @@ export default class HelpDeskWidget {
       <div class="loadingProcess" id="loadingProcess"></div>
       </div>
     `;
+  }
+
+  static get formErrorHTML() {
+    return `
+      <div class="dialog-error ${STYLE_HIDDEN}">
+        <div class="overlay" id="overlay"></div>
+        <form class="form-ticket-delete row g-3">
+          <div class="col-12">
+            <div class="d-flex justify-content-center">
+              <h5 class="form-title">Ошибка</h5>
+            </div>
+            <p></p>
+          </div>
+          <div class="col-12 d-flex justify-content-end">
+            <button type="submit" value="submit" class="submit-buttom btn btn-primary ms-2">ОК</button>
+          </div>
+        </form>
+      </div>
+      `;
   }
 
   static get formTicketDeleteHTML() {
@@ -206,6 +226,10 @@ export default class HelpDeskWidget {
     return '.dialog-loading';
   }
 
+  static get dialogErrorSelector() {
+    return '.dialog-error';
+  }
+
   static get dialogDeleteSelector() {
     return '.dialog-delete';
   }
@@ -231,13 +255,14 @@ export default class HelpDeskWidget {
     }
 
     this.parentEl.innerHTML += HelpDeskWidget.loadingHTML;
+    this.parentEl.innerHTML += HelpDeskWidget.formErrorHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
 
     const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
     this.XHR = new RequestSender(this.urlServer, {
-      form: formProcess, 
-      hide: STYLE_HIDDEN
+      form: formProcess,
+      hide: STYLE_HIDDEN,
     });
 
     this.tasksList.items = await this.getAllTickets();
@@ -271,17 +296,17 @@ export default class HelpDeskWidget {
     const idItem = item.dataset.id;
 
     // Событие по клику задачу
-    item.addEventListener('click', async (evt) => {
+    item.addEventListener('click', async () => {
       const divDescription = item.querySelector(HelpDeskWidget.descriptionItemSelector);
 
       if (!divDescription) {
         return;
       }
-      
+
       if (divDescription.classList.contains(STYLE_HIDDEN)) {
         const pDescription = divDescription.querySelector('p');
         const itemData = await this.getItemData(idItem);
-        pDescription.innerText = itemData ? itemData.description : '';  
+        pDescription.innerText = itemData ? itemData.description : '';
       }
 
       divDescription.classList.toggle(STYLE_HIDDEN);
@@ -321,16 +346,15 @@ export default class HelpDeskWidget {
 
   async getItemData(id) {
     const data = await this.getTicket(id);
-    if (data.length <= 0) {
-      return;
+    if (data && data.length > 0) {
+      return data[0];
     }
-
-    return data[0];
+    return data;
   }
 
   showFormDialog(dialog, typeDialog, item = null) {
     // console.log(dialog, typeDialog, item);
-    if (typeDialog < 0 || typeDialog > 2) return;
+    if (typeDialog < 0 || typeDialog > 3) return;
 
     dialog.classList.remove(STYLE_HIDDEN);
 
@@ -338,10 +362,11 @@ export default class HelpDeskWidget {
     const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
     titleForm.innerText = FORMS.title[typeDialog];
 
-    // Отработка кнопки "Отмена"
-    const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
-    cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
-
+    // Отработка кнопки "Отмена" для всех форм кроме формы отображения ошибки
+    if (typeDialog !== 3) {
+      const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
+      cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
+    }
 
     switch (typeDialog) {
       // Диалог добавления нового тикета
@@ -360,17 +385,19 @@ export default class HelpDeskWidget {
 
           const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
 
-          console.log('Add submit: ' + body);
-
           const result = await this.addTicket(body);
 
           dialog.classList.add(STYLE_HIDDEN);
-          console.log(result);
 
-          if (Object.hasOwn(result, 'id')) {
+          if (result !== undefined && result !== null && result.constructor === Object) {
             this.addItem(result);
+          } else {
+            console.error(result); // eslint-disable-line no-console
+            HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
           }
         });
+
+        break;
       }
 
       // Диалог редактирования тикета
@@ -387,63 +414,83 @@ export default class HelpDeskWidget {
         );
         // inputDescription.value = textInputDescription.innerText;
         inputDescription.value = item ? item.description : '';
-        return;
+
+        break;
       }
 
       // Диалог удаления тикета
-      case 2: {
+      case 2:
         // Отработка подтверждения формы
         dialog.addEventListener('submit', (evt) => {
           evt.preventDefault();
-          console.log('Delete submit');
           dialog.classList.add(STYLE_HIDDEN);
         });
+
+        break;
+
+      // Диалог ошибки
+      case 3: {
+        const textError = dialog.querySelector('p');
+        textError.innerText = item;
+
+        dialog.addEventListener('submit', (evt) => {
+          evt.preventDefault();
+          dialog.classList.add(STYLE_HIDDEN);
+        });
+
+        break;
       }
 
       default:
-        return;
+        break;
     }
   }
 
   async getAllTickets() {
-    const responseText = await this.XHR.sendRequest('GET', 'method=allTickets'); 
-    return HelpDeskWidget.responseAnswer(responseText);
+    const responseText = await this.XHR.sendRequest('GET', 'method=allTickets');
+    const result = HelpDeskWidget.responseAnswer(responseText);
+    return result;
   }
 
   async getTicket(id) {
     if (!id) {
-      return;
+      return null;
     }
 
-    const responseText = await this.XHR.sendRequest('GET', `method=ticketById&id=${id}`); 
-    return HelpDeskWidget.responseAnswer(responseText);
+    const responseText = await this.XHR.sendRequest('GET', `method=ticketById&id=${id}`);
+    const result = HelpDeskWidget.responseAnswer(responseText);
+    return result;
   }
 
   async addTicket(body) {
     if (!body) {
-      return;
+      return null;
     }
 
-    const responseText = await this.XHR.sendRequest('POST', 'method=createTicket', body); 
-    return HelpDeskWidget.responseAnswer(responseText);
+    const responseText = await this.XHR.sendRequest('POST', 'method=createTicket', body);
+    const result = HelpDeskWidget.responseAnswer(responseText);
+    return result;
   }
 
   static responseAnswer(a) {
     let rAnswer = null;
 
     if (!(a.status >= 200 && a.status < 300)) {
-      console.error(`Ошибка запроса к серверу (код - ${a.status}): "${a.responseText}"!`);
-    }   
+      rAnswer = `Ошибка запроса к серверу (код - ${a.status}): "${a.responseText}".`;
+      console.error(rAnswer); // eslint-disable-line no-console
+      return rAnswer;
+    }
 
     if (a.status === 202) {
       try {
         rAnswer = JSON.parse(a.responseText);
       } catch (e) {
-        console.error(`${e} Статус: ${a.status}. Тело: ${a.responseText}.`);
+        rAnswer = `${e} Статус: ${a.status}. Тело: ${a.responseText}.`;
+        console.error(rAnswer); // eslint-disable-line no-console
+        return rAnswer;
       }
     }
 
     return rAnswer;
   }
-
 }
