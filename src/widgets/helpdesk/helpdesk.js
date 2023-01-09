@@ -1,5 +1,5 @@
 import './helpdesk.css';
-import RequestSender from '../../js/requestsender';
+import RequestSender from './requestsender';
 
 // Наименование стиля для скрытия объекта
 const STYLE_HIDDEN = 'hidden';
@@ -389,13 +389,13 @@ export default class HelpDeskWidget {
     dialog.addEventListener('submit', async (evt) => {
       evt.preventDefault();
 
-      console.log('Удаление задачи id=',id);
       const result = await this.deleteTicket(id);
 
       dialog.classList.add(STYLE_HIDDEN);
 
       if (result !== undefined && result !== null && result.constructor === Object) {
-        this.deleteItem(id);
+        console.log('Удаление задачи id=',result.id, ' result=', result);
+        this.deleteItem(result.id);
       }
     });
   }
