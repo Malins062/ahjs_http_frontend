@@ -13,14 +13,15 @@ export default class RequestSender {
     const requestText = `${this.url}?${query}`;
     this.xhr.open(method, requestText);
     this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+
     this.xhr.send(body);
 
     if (this.xhr.readyState === XMLHttpRequest.DONE) {
-      return http;
+      return this.xhr;
     }
 
     let res;
-    const p = new Promise((r) => res = r);
+    const p = new Promise((r) => { res = r; });
 
     this.xhr.addEventListener('readystatechange', () => {
       if (this.xhr.readyState === XMLHttpRequest.DONE) {

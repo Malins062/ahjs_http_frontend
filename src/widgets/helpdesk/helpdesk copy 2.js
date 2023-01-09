@@ -247,7 +247,7 @@ export default class HelpDeskWidget {
   }
 
   // Разметка HTML и отслеживание событий
-  async bindToDOM() {
+  bindToDOM() {
     // Отрисовка HTML
     this.parentEl.innerHTML = '';
     if (!this.urlServer) {
@@ -259,13 +259,11 @@ export default class HelpDeskWidget {
     this.parentEl.innerHTML += HelpDeskWidget.formTicketHTML;
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
 
-    const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
-    this.XHR = new RequestSender(this.urlServer, {
-      form: formProcess,
-      hide: STYLE_HIDDEN,
-    });
+    this.formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
+    this.XHR = new RequestSender(this.urlServer);
 
-    this.tasksList.items = await this.getAllTickets();
+    this.tasksList.items = this.getAllTickets();
+    console.log('this.tasksList: ', this.tasksList);
 
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
     this.tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
@@ -393,7 +391,7 @@ export default class HelpDeskWidget {
             this.addItem(result);
           } else {
             console.error(result); // eslint-disable-line no-console
-            // HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
+            HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
           }
         });
 
@@ -446,10 +444,29 @@ export default class HelpDeskWidget {
     }
   }
 
-  async getAllTickets() {
-    const responseText = await this.XHR.sendRequest('GET', 'method=allTickets');
-    const result = this.responseAnswer(responseText);
+  sendData(method, query, body = null) {
+    if (this.formProcess.form) {
+      this.formProcess.form.classList.remove(this.formProcess.hide);
+    }
+
+    const response = this.XHR.sendRequest(method, query, body);
+    const result = HelpDeskWidget.responseAnswer(response);
+
+    if (this.formProcess.form) {
+      this.formProcess.form.classList.add(this.formProcess.hide);
+    }
+
     return result;
+  }
+
+  getAllTickets() {
+    const result = this.sendData('GET', 'method=allTickets');
+
+    console.log(result);
+    if (result.length > 0) {
+      return result;
+    }
+    return [];
   }
 
   async getTicket(id) {
@@ -458,7 +475,7 @@ export default class HelpDeskWidget {
     }
 
     const responseText = await this.XHR.sendRequest('GET', `method=ticketById&id=${id}`);
-    const result = this.responseAnswer(responseText);
+    const result = HelpDeskWidget.responseAnswer(responseText);
     return result;
   }
 
@@ -468,16 +485,17 @@ export default class HelpDeskWidget {
     }
 
     const responseText = await this.XHR.sendRequest('POST', 'method=createTicket', body);
-    const result = this.responseAnswer(responseText);
+    const result = HelpDeskWidget.responseAnswer(responseText);
     return result;
   }
 
-  responseAnswer(a) {
+  static responseAnswer(a) {
     let rAnswer = null;
+
     if (!(a.status >= 200 && a.status < 300)) {
-      rAnswer = `Ошибка запроса к серверу ${this.urlServer} (код - ${a.status}): "${a.responseText}".`;
-      this.showError(rAnswer); // eslint-disable-line no-console
-      return [];
+      rAnswer = `Ошибка запроса к серверу (код - ${a.status}): "${a.responseText}".`;
+      console.error(rAnswer); // eslint-disable-line no-console
+      return rAnswer;
     }
 
     if (a.status === 202) {
@@ -485,25 +503,11 @@ export default class HelpDeskWidget {
         rAnswer = JSON.parse(a.responseText);
       } catch (e) {
         rAnswer = `${e} Статус: ${a.status}. Тело: ${a.responseText}.`;
-        this.showError(rAnswer); // eslint-disable-line no-console
-        return [];
+        console.error(rAnswer); // eslint-disable-line no-console
+        return rAnswer;
       }
     }
 
     return rAnswer;
-  }
-
-  showError(msg) {
-    console.error(msg); // eslint-disable-line no-console
-    const formError = this.parentEl.querySelector(HelpDeskWidget.dialogErrorSelector);
-    const p = formError.querySelector('p');
-
-    formError.classList.remove(STYLE_HIDDEN);
-    p.innerText = msg;
-
-    formError.addEventListener('submit', (evt) => {
-      evt.preventDefault();
-      formError.classList.add(STYLE_HIDDEN);
-    });
   }
 }
