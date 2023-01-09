@@ -333,13 +333,13 @@ export default class HelpDeskWidget {
     });
   }
 
-  onClickNewItem() {
+  async onClickNewItem() {
     const dialog = this.parentEl.querySelector(HelpDeskWidget.dialogAddEditSelector);
     dialog.classList.remove(STYLE_HIDDEN);
 
     // Заголовок формы
     const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
-    titleForm.innerText = FORMS.title[0];
+    titleForm.innerText = 'Добавить тикет';
 
     // Имя тикета
     const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
@@ -394,7 +394,7 @@ export default class HelpDeskWidget {
       dialog.classList.add(STYLE_HIDDEN);
 
       if (result !== undefined && result !== null && result.constructor === Object) {
-        console.log('Удаление задачи id=',result.id, ' result=', result);
+        console.log('Удаление задачи id=', result.id, ' result=', result);
         this.deleteItem(result.id);
       }
     });
