@@ -1,7 +1,7 @@
 import HelpDeskWidget from '../widgets/helpdesk/helpdesk';
 
 // Адрес сервера
-const URL_SERVER = 'http://localhost:7071';
+const URL_SERVER = 'http://localhost:7070';
 
 // Ticket {
 //   id // идентификатор (уникальный в пределах системы)

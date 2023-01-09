@@ -275,12 +275,9 @@ export default class HelpDeskWidget {
 
   initEvents() {
     // Обработка событий по нажатию на кнопку добавить Тикет
-    const buttonItemAdd = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
-    // this.onClickItemAdd = this.onClickItemAdd.bind(this);
-    buttonItemAdd.addEventListener('click', () => {
-      const dialogAddEdit = this.parentEl.querySelector(HelpDeskWidget.dialogAddEditSelector);
-      this.showFormDialog(dialogAddEdit, 0);
-    });
+    const buttonNewItem = this.parentEl.querySelector(HelpDeskWidget.itemAddSelector);
+    this.onClickNewItem = this.onClickNewItem.bind(this);
+    buttonNewItem.addEventListener('click', this.onClickNewItem);
 
     // Обработка событий на каждой задаче и списка
     this.initItemsEvents();
@@ -320,11 +317,10 @@ export default class HelpDeskWidget {
 
     // Событие удаления задачи
     const deleteItem = item.querySelector(HelpDeskWidget.delItemSelector);
-    deleteItem.addEventListener('click', async (evt) => {
+    deleteItem.addEventListener('click', (evt) => {
       evt.stopPropagation();
-      const dialogDelete = this.parentEl.querySelector(HelpDeskWidget.dialogDeleteSelector);
-      const itemData = await this.getItemData(idItem);
-      this.showFormDialog(dialogDelete, 2, itemData);
+      evt.preventDefault();
+      this.onClickDeleteItem(idItem);
     });
 
     // Событие редактирования задачи
@@ -337,11 +333,76 @@ export default class HelpDeskWidget {
     });
   }
 
+  onClickNewItem() {
+    const dialog = this.parentEl.querySelector(HelpDeskWidget.dialogAddEditSelector);
+    dialog.classList.remove(STYLE_HIDDEN);
+
+    // Заголовок формы
+    const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
+    titleForm.innerText = FORMS.title[0];
+
+    // Имя тикета
+    const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
+    inputName.value = '';
+
+    // Описание тикета
+    const inputDescription = dialog.querySelector(
+      HelpDeskWidget.idSelector(FORMS.idInputDescription),
+    );
+    inputDescription.value = '';
+
+    // Отработка кнопки "Отмена" для всех форм кроме формы отображения ошибки
+    const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
+    cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
+
+    // Отработка подтверждения формы
+    dialog.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+
+      const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
+      const result = await this.addTicket(body);
+
+      dialog.classList.add(STYLE_HIDDEN);
+
+      if (result !== undefined && result !== null && result.constructor === Object) {
+        this.addItem(result);
+      }
+    });
+  }
+
   addItem(item) {
     const itemHTML = HelpDeskWidget.itemHTML(item);
     this.tasksListItems.insertAdjacentHTML('beforeEnd', itemHTML);
     const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(item.id));
     this.initItemEvents(liItem);
+  }
+
+  async onClickDeleteItem(id) {
+    const dialog = this.parentEl.querySelector(HelpDeskWidget.dialogDeleteSelector);
+    dialog.classList.remove(STYLE_HIDDEN);
+
+    // Отработка кнопки "Отмена" для всех форм кроме формы отображения ошибки
+    const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
+    cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
+
+    // Отработка подтверждения формы
+    dialog.addEventListener('submit', async (evt) => {
+      evt.preventDefault();
+
+      console.log('Удаление задачи id=',id);
+      const result = await this.deleteTicket(id);
+
+      dialog.classList.add(STYLE_HIDDEN);
+
+      if (result !== undefined && result !== null && result.constructor === Object) {
+        this.deleteItem(id);
+      }
+    });
+  }
+
+  deleteItem(id) {
+    const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(id));
+    liItem.remove();
   }
 
   async getItemData(id) {
@@ -467,7 +528,19 @@ export default class HelpDeskWidget {
       return null;
     }
 
+    console.log('addTicket body=', body);
     const responseText = await this.XHR.sendRequest('POST', 'method=createTicket', body);
+    const result = this.responseAnswer(responseText);
+    return result;
+  }
+
+  async deleteTicket(id) {
+    if (!id) {
+      return null;
+    }
+
+    console.log('deleteTicket id=', id);
+    const responseText = await this.XHR.sendRequest('DELETE', `method=deleteTicket&id=${id}`);
     const result = this.responseAnswer(responseText);
     return result;
   }
