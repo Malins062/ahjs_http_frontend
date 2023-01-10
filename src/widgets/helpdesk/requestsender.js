@@ -122,7 +122,7 @@ export default class RequestSender {
       return null;
     }
 
-    console.log('addTicket body=', body);
+    // console.log('addTicket body=', body);
     const responseText = await this.sendRequest('POST', 'method=createTicket', body);
     const result = this.responseAnswer(responseText);
     return result;
@@ -133,7 +133,7 @@ export default class RequestSender {
       return null;
     }
 
-    console.log('deleteTicket id=', id);
+    // console.log('deleteTicket id=', id);
     const responseText = await this.sendRequest('DELETE', `method=deleteTicket&id=${id}`);
     const result = this.responseAnswer(responseText);
     return result;
@@ -144,8 +144,19 @@ export default class RequestSender {
       return null;
     }
 
-    console.log('changeStatusTicket id=', id);
+    // console.log('changeStatusTicket id=', id);
     const responseText = await this.sendRequest('PATCH', `method=changeStatusTicket&id=${id}`, body);
+    const result = this.responseAnswer(responseText);
+    return result;
+  }
+
+  async changeTicket(id, body) {
+    if (!id || !body) {
+      return null;
+    }
+
+    // console.log('changeTicket id=', id);
+    const responseText = await this.sendRequest('PATCH', `method=changeTicket&id=${id}`, body);
     const result = this.responseAnswer(responseText);
     return result;
   }
