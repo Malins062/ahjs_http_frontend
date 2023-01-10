@@ -8,7 +8,7 @@ export default class RequestSender {
   }
 
   getAsync(method, query, body) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       const requestText = `${this.url}?${query}`;
       const xhr = new XMLHttpRequest();
       xhr.open(method, requestText);
@@ -97,9 +97,8 @@ export default class RequestSender {
     // console.log('getAllTickets result', result)
     if (result !== undefined && result !== null && result.constructor === Array) {
       return result;
-    } else {
-      return [];
     }
+    return [];
   }
 
   async getTicket(id) {
@@ -110,8 +109,8 @@ export default class RequestSender {
     const responseText = await this.sendRequest('GET', `method=ticketById&id=${id}`);
     const result = this.responseAnswer(responseText);
 
-    if (result !== undefined && result !== null && 
-      result.constructor === Array && result.length > 0) {
+    if (result !== undefined && result !== null
+      && result.constructor === Array && result.length > 0) {
       return result[0];
     }
 
@@ -150,5 +149,4 @@ export default class RequestSender {
     const result = this.responseAnswer(responseText);
     return result;
   }
-
 }

@@ -261,7 +261,7 @@ export default class HelpDeskWidget {
 
     const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
     const formError = this.parentEl.querySelector(HelpDeskWidget.dialogErrorSelector);
-    this.XHR = new RequestSender(this.urlServer, 
+    this.XHR = new RequestSender(this.urlServer,
       {
         form: formProcess,
         hide: STYLE_HIDDEN,
@@ -269,8 +269,7 @@ export default class HelpDeskWidget {
       {
         form: formError,
         hide: STYLE_HIDDEN,
-      },
-    );
+      });
 
     this.tasksList.items = await this.XHR.getAllTickets();
 
@@ -436,37 +435,6 @@ export default class HelpDeskWidget {
   //   }
 
   //   switch (typeDialog) {
-  //     // Диалог добавления нового тикета
-  //     case 0: {
-  //       const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
-  //       inputName.value = '';
-
-  //       const inputDescription = dialog.querySelector(
-  //         HelpDeskWidget.idSelector(FORMS.idInputDescription),
-  //       );
-  //       inputDescription.value = '';
-
-  //       // Отработка подтверждения формы
-  //       dialog.addEventListener('submit', async (evt) => {
-  //         evt.preventDefault();
-
-  //         const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
-
-  //         const result = await this.addTicket(body);
-
-  //         dialog.classList.add(STYLE_HIDDEN);
-
-  //         if (result !== undefined && result !== null && result.constructor === Object) {
-  //           this.addItem(result);
-  //         } else {
-  //           console.error(result); // eslint-disable-line no-console
-  //           // HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
-  //         }
-  //       });
-
-  //       break;
-  //     }
-
   //     // Диалог редактирования тикета
   //     case 1: {
   //       // const textInputName = item.querySelector(HelpDeskWidget.nameItemSelector);
@@ -512,5 +480,4 @@ export default class HelpDeskWidget {
   //       break;
   //   }
   // }
-
 }
