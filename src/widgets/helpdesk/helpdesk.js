@@ -260,12 +260,19 @@ export default class HelpDeskWidget {
     this.parentEl.innerHTML += HelpDeskWidget.formTicketDeleteHTML;
 
     const formProcess = this.parentEl.querySelector(HelpDeskWidget.loadingSelector);
-    this.XHR = new RequestSender(this.urlServer, {
-      form: formProcess,
-      hide: STYLE_HIDDEN,
-    });
+    const formError = this.parentEl.querySelector(HelpDeskWidget.dialogErrorSelector);
+    this.XHR = new RequestSender(this.urlServer, 
+      {
+        form: formProcess,
+        hide: STYLE_HIDDEN,
+      },
+      {
+        form: formError,
+        hide: STYLE_HIDDEN,
+      },
+    );
 
-    this.tasksList.items = await this.getAllTickets();
+    this.tasksList.items = await this.XHR.getAllTickets();
 
     this.parentEl.innerHTML += HelpDeskWidget.tasksListHTML(this.tasksList);
     this.tasksListItems = this.parentEl.querySelector(HelpDeskWidget.listItemsSelector);
@@ -302,7 +309,7 @@ export default class HelpDeskWidget {
 
       if (divDescription.classList.contains(STYLE_HIDDEN)) {
         const pDescription = divDescription.querySelector('p');
-        const itemData = await this.getItemData(idItem);
+        const itemData = await this.XHR.getTicket(idItem);
         pDescription.innerText = itemData ? itemData.description : '';
       }
 
@@ -360,21 +367,14 @@ export default class HelpDeskWidget {
       evt.preventDefault();
 
       const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
-      const result = await this.addTicket(body);
+      const result = await this.XHR.addTicket(body);
 
       dialog.classList.add(STYLE_HIDDEN);
 
       if (result !== undefined && result !== null && result.constructor === Object) {
-        this.addItem(result);
+        this.addItemHTML(result);
       }
     });
-  }
-
-  addItem(item) {
-    const itemHTML = HelpDeskWidget.itemHTML(item);
-    this.tasksListItems.insertAdjacentHTML('beforeEnd', itemHTML);
-    const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(item.id));
-    this.initItemEvents(liItem);
   }
 
   async onClickDeleteItem(id) {
@@ -389,194 +389,121 @@ export default class HelpDeskWidget {
     dialog.addEventListener('submit', async (evt) => {
       evt.preventDefault();
 
-      const result = await this.deleteTicket(id);
+      const result = await this.XHR.deleteTicket(id);
 
       dialog.classList.add(STYLE_HIDDEN);
 
       if (result !== undefined && result !== null && result.constructor === Object) {
         console.log('Удаление задачи id=', result.id, ' result=', result);
-        this.deleteItem(result.id);
+        this.deleteItemHTML(result.id);
       }
     });
   }
 
-  deleteItem(id) {
+  addItemHTML(item) {
+    const itemHTML = HelpDeskWidget.itemHTML(item);
+    this.tasksListItems.insertAdjacentHTML('beforeEnd', itemHTML);
+    const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(item.id));
+    this.initItemEvents(liItem);
+  }
+
+  deleteItemHTML(id) {
     const liItem = this.tasksListItems.querySelector(HelpDeskWidget.idSelector(id));
     liItem.remove();
   }
 
-  async getItemData(id) {
-    const data = await this.getTicket(id);
-    if (data && data.length > 0) {
-      return data[0];
-    }
-    return data;
-  }
+  // showFormDialog(dialog, typeDialog, item = null) {
+  //   // console.log(dialog, typeDialog, item);
+  //   if (typeDialog < 0 || typeDialog > 3) return;
 
-  showFormDialog(dialog, typeDialog, item = null) {
-    // console.log(dialog, typeDialog, item);
-    if (typeDialog < 0 || typeDialog > 3) return;
+  //   dialog.classList.remove(STYLE_HIDDEN);
 
-    dialog.classList.remove(STYLE_HIDDEN);
+  //   // Заголовок формы
+  //   const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
+  //   titleForm.innerText = FORMS.title[typeDialog];
 
-    // Заголовок формы
-    const titleForm = dialog.querySelector(HelpDeskWidget.formTitleSelector);
-    titleForm.innerText = FORMS.title[typeDialog];
+  //   // Отработка кнопки "Отмена" для всех форм кроме формы отображения ошибки
+  //   if (typeDialog !== 3) {
+  //     const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
+  //     cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
+  //   }
 
-    // Отработка кнопки "Отмена" для всех форм кроме формы отображения ошибки
-    if (typeDialog !== 3) {
-      const cancelButton = dialog.querySelector(HelpDeskWidget.cancelButtonSelector);
-      cancelButton.addEventListener('click', () => dialog.classList.add(STYLE_HIDDEN));
-    }
+  //   switch (typeDialog) {
+  //     // Диалог добавления нового тикета
+  //     case 0: {
+  //       const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
+  //       inputName.value = '';
 
-    switch (typeDialog) {
-      // Диалог добавления нового тикета
-      case 0: {
-        const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
-        inputName.value = '';
+  //       const inputDescription = dialog.querySelector(
+  //         HelpDeskWidget.idSelector(FORMS.idInputDescription),
+  //       );
+  //       inputDescription.value = '';
 
-        const inputDescription = dialog.querySelector(
-          HelpDeskWidget.idSelector(FORMS.idInputDescription),
-        );
-        inputDescription.value = '';
+  //       // Отработка подтверждения формы
+  //       dialog.addEventListener('submit', async (evt) => {
+  //         evt.preventDefault();
 
-        // Отработка подтверждения формы
-        dialog.addEventListener('submit', async (evt) => {
-          evt.preventDefault();
+  //         const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
 
-          const body = `name=${encodeURIComponent(inputName.value)}&description=${encodeURIComponent(inputDescription.value)}`;
+  //         const result = await this.addTicket(body);
 
-          const result = await this.addTicket(body);
+  //         dialog.classList.add(STYLE_HIDDEN);
 
-          dialog.classList.add(STYLE_HIDDEN);
+  //         if (result !== undefined && result !== null && result.constructor === Object) {
+  //           this.addItem(result);
+  //         } else {
+  //           console.error(result); // eslint-disable-line no-console
+  //           // HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
+  //         }
+  //       });
 
-          if (result !== undefined && result !== null && result.constructor === Object) {
-            this.addItem(result);
-          } else {
-            console.error(result); // eslint-disable-line no-console
-            // HelpDeskWidget.showFormDialog(HelpDeskWidget.dialogErrorSelector, 3, result);
-          }
-        });
+  //       break;
+  //     }
 
-        break;
-      }
+  //     // Диалог редактирования тикета
+  //     case 1: {
+  //       // const textInputName = item.querySelector(HelpDeskWidget.nameItemSelector);
+  //       const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
+  //       // console.log(inputName, textInputName);
+  //       // inputName.value = textInputName.innerText;
+  //       inputName.value = item ? item.name : '';
 
-      // Диалог редактирования тикета
-      case 1: {
-        // const textInputName = item.querySelector(HelpDeskWidget.nameItemSelector);
-        const inputName = dialog.querySelector(HelpDeskWidget.idSelector(FORMS.idInputName));
-        // console.log(inputName, textInputName);
-        // inputName.value = textInputName.innerText;
-        inputName.value = item ? item.name : '';
+  //       // const textInputDescription = item.querySelector(HelpDeskWidget.textInputDescription);
+  //       const inputDescription = dialog.querySelector(
+  //         HelpDeskWidget.idSelector(FORMS.idInputDescription),
+  //       );
+  //       // inputDescription.value = textInputDescription.innerText;
+  //       inputDescription.value = item ? item.description : '';
 
-        // const textInputDescription = item.querySelector(HelpDeskWidget.textInputDescription);
-        const inputDescription = dialog.querySelector(
-          HelpDeskWidget.idSelector(FORMS.idInputDescription),
-        );
-        // inputDescription.value = textInputDescription.innerText;
-        inputDescription.value = item ? item.description : '';
+  //       break;
+  //     }
 
-        break;
-      }
+  //     // Диалог удаления тикета
+  //     case 2:
+  //       // Отработка подтверждения формы
+  //       dialog.addEventListener('submit', (evt) => {
+  //         evt.preventDefault();
+  //         dialog.classList.add(STYLE_HIDDEN);
+  //       });
 
-      // Диалог удаления тикета
-      case 2:
-        // Отработка подтверждения формы
-        dialog.addEventListener('submit', (evt) => {
-          evt.preventDefault();
-          dialog.classList.add(STYLE_HIDDEN);
-        });
+  //       break;
 
-        break;
+  //     // Диалог ошибки
+  //     case 3: {
+  //       const textError = dialog.querySelector('p');
+  //       textError.innerText = item;
 
-      // Диалог ошибки
-      case 3: {
-        const textError = dialog.querySelector('p');
-        textError.innerText = item;
+  //       dialog.addEventListener('submit', (evt) => {
+  //         evt.preventDefault();
+  //         dialog.classList.add(STYLE_HIDDEN);
+  //       });
 
-        dialog.addEventListener('submit', (evt) => {
-          evt.preventDefault();
-          dialog.classList.add(STYLE_HIDDEN);
-        });
+  //       break;
+  //     }
 
-        break;
-      }
+  //     default:
+  //       break;
+  //   }
+  // }
 
-      default:
-        break;
-    }
-  }
-
-  async getAllTickets() {
-    const responseText = await this.XHR.sendRequest('GET', 'method=allTickets');
-    const result = this.responseAnswer(responseText);
-    return result;
-  }
-
-  async getTicket(id) {
-    if (!id) {
-      return null;
-    }
-
-    const responseText = await this.XHR.sendRequest('GET', `method=ticketById&id=${id}`);
-    const result = this.responseAnswer(responseText);
-    return result;
-  }
-
-  async addTicket(body) {
-    if (!body) {
-      return null;
-    }
-
-    console.log('addTicket body=', body);
-    const responseText = await this.XHR.sendRequest('POST', 'method=createTicket', body);
-    const result = this.responseAnswer(responseText);
-    return result;
-  }
-
-  async deleteTicket(id) {
-    if (!id) {
-      return null;
-    }
-
-    console.log('deleteTicket id=', id);
-    const responseText = await this.XHR.sendRequest('DELETE', `method=deleteTicket&id=${id}`);
-    const result = this.responseAnswer(responseText);
-    return result;
-  }
-
-  responseAnswer(a) {
-    let rAnswer = null;
-    if (!(a.status >= 200 && a.status < 300)) {
-      rAnswer = `Ошибка запроса к серверу ${this.urlServer} (код - ${a.status}): "${a.responseText}".`;
-      this.showError(rAnswer); // eslint-disable-line no-console
-      return [];
-    }
-
-    if (a.status === 202) {
-      try {
-        rAnswer = JSON.parse(a.responseText);
-      } catch (e) {
-        rAnswer = `${e} Статус: ${a.status}. Тело: ${a.responseText}.`;
-        this.showError(rAnswer); // eslint-disable-line no-console
-        return [];
-      }
-    }
-
-    return rAnswer;
-  }
-
-  showError(msg) {
-    console.error(msg); // eslint-disable-line no-console
-    const formError = this.parentEl.querySelector(HelpDeskWidget.dialogErrorSelector);
-    const p = formError.querySelector('p');
-
-    formError.classList.remove(STYLE_HIDDEN);
-    p.innerText = msg;
-
-    formError.addEventListener('submit', (evt) => {
-      evt.preventDefault();
-      formError.classList.add(STYLE_HIDDEN);
-    });
-  }
 }

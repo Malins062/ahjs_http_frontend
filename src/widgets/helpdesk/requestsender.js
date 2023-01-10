@@ -1,7 +1,10 @@
+const SERVER_ERROR = 'Ошибка сети. Сервер не отдал код ошибки.';
+
 export default class RequestSender {
-  constructor(urlServer, formProcess = null) {
+  constructor(urlServer, formProcess = null, formError = null) {
     this.url = urlServer;
     this.formProcess = formProcess;
+    this.formError = formError;
     this.xhr = new XMLHttpRequest();
   }
 
@@ -51,7 +54,7 @@ export default class RequestSender {
       };
 
       this.xhr.onerror = () => {
-        reject(new Error('Ошибка сети. Сервер не отдал код ошибки.'));
+        resolve(SERVER_ERROR);
       };
 
       this.xhr.send(body);
@@ -71,4 +74,100 @@ export default class RequestSender {
 
     return result;
   }
+
+  responseAnswer(a) {
+    let rAnswer = null;
+    // console.log('responseAnswer', a.status);
+    if (a === SERVER_ERROR || !a.status) {
+      rAnswer = a;
+      this.showError(rAnswer);
+      return rAnswer;
+    }
+
+    if (!(a.status >= 200 && a.status < 300)) {
+      rAnswer = `Ошибка запроса к серверу ${this.urlServer} (код - ${a.status}): "${a.responseText}".`;
+      this.showError(rAnswer); // eslint-disable-line no-console
+      return rAnswer;
+    }
+
+    if (a.status === 202) {
+      try {
+        console.log('responseText', a.responseText);
+        rAnswer = JSON.parse(a.responseText);
+      } catch (e) {
+        rAnswer = `${e} Статус: ${a.status}. Тело: ${a.responseText}.`;
+        this.showError(rAnswer); // eslint-disable-line no-console
+        return rAnswer;
+      }
+    }
+
+    // console.log('rAnswer', rAnswer);
+    return rAnswer;
+  }
+
+  showError(msg) {
+    console.error(msg); // eslint-disable-line no-console
+
+    if (this.formError) {
+      const p = this.formError.form.querySelector('p');
+
+      this.formError.form.classList.remove(this.formError.hide);
+      p.innerText = msg;
+
+      this.formError.form.addEventListener('submit', (evt) => {
+        evt.preventDefault();
+        this.formError.form.classList.add(this.formError.hide);
+      });
+    }
+  }
+
+  async getAllTickets() {
+    const responseText = await this.sendRequest('GET', 'method=allTickets');
+    const result = this.responseAnswer(responseText);
+    // console.log('getAllTickets result', result)
+    if (result !== undefined && result !== null && result.constructor === Array) {
+      return result;
+    } else {
+      return [];
+    }
+  }
+
+  async getTicket(id) {
+    if (!id) {
+      return null;
+    }
+
+    const responseText = await this.sendRequest('GET', `method=ticketById&id=${id}`);
+    const result = this.responseAnswer(responseText);
+
+    if (result !== undefined && result !== null && 
+      result.constructor === Array && result.length > 0) {
+      return result[0];
+    }
+
+    return [];
+  }
+
+  async addTicket(body) {
+    if (!body) {
+      return null;
+    }
+
+    console.log('addTicket body=', body);
+    const responseText = await this.sendRequest('POST', 'method=createTicket', body);
+    const result = this.responseAnswer(responseText);
+    return result;
+  }
+
+  async deleteTicket(id) {
+    if (!id) {
+      return null;
+    }
+
+    console.log('deleteTicket id=', id);
+    const responseText = await this.sendRequest('DELETE', `method=deleteTicket&id=${id}`);
+    const result = this.responseAnswer(responseText);
+    return result;
+  }
+
 }
