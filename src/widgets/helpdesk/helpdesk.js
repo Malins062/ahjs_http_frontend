@@ -320,6 +320,7 @@ export default class HelpDeskWidget {
     const statusItem = item.querySelector(HelpDeskWidget.statusItemSelector);
     statusItem.addEventListener('click', (evt) => {
       evt.stopPropagation();
+      this.setStatusItem(idItem, statusItem.checked);
     });
 
     // Событие удаления задачи
@@ -398,6 +399,12 @@ export default class HelpDeskWidget {
         this.deleteItemHTML(result.id);
       }
     });
+  }
+
+  async setStatusItem(id, checked) {
+    const body = `status=${checked}`;
+    const result = await this.XHR.setStatusTicket(id, body);
+    return result;
   }
 
   addItemHTML(item) {

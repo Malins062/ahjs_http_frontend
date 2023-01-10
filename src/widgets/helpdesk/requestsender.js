@@ -140,4 +140,15 @@ export default class RequestSender {
     return result;
   }
 
+  async setStatusTicket(id, body) {
+    if (!id) {
+      return null;
+    }
+
+    console.log('changeTicket id=', id);
+    const responseText = await this.sendRequest('PATCH', `method=changeTicket&id=${id}`, body);
+    const result = this.responseAnswer(responseText);
+    return result;
+  }
+
 }
