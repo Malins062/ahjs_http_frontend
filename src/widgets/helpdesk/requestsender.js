@@ -15,7 +15,7 @@ export default class RequestSender {
       xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
       xhr.onload = () => {
-        resolve(this.xhr);
+        resolve(xhr);
         // if (this.xhr.status === 202) {
         //   resolve(this.xhr.response);
         // } else {
@@ -62,7 +62,7 @@ export default class RequestSender {
 
     if (a.status === 202) {
       try {
-        console.log('responseText', a.responseText);
+        // console.log('responseText', a.responseText);
         rAnswer = JSON.parse(a.responseText);
       } catch (e) {
         rAnswer = `${e} Статус: ${a.status}. Тело: ${a.responseText}.`;
