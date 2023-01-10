@@ -5,46 +5,16 @@ export default class RequestSender {
     this.url = urlServer;
     this.formProcess = formProcess;
     this.formError = formError;
-    this.xhr = new XMLHttpRequest();
   }
-
-  // sendRequest(method, query, body = undefined) {
-  //   if (this.formProcess.form) {
-  //     this.formProcess.form.classList.remove(this.formProcess.hide);
-  //   }
-
-  //   const requestText = `${this.url}?${query}`;
-  //   this.xhr.open(method, requestText);
-  //   this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-
-  //   this.xhr.send(body);
-
-  //   if (this.xhr.readyState === XMLHttpRequest.DONE) {
-  //     return this.xhr;
-  //   }
-
-  //   let res;
-  //   const p = new Promise((r) => { res = r; });
-
-  //   this.xhr.addEventListener('readystatechange', () => {
-  //     if (this.xhr.readyState === XMLHttpRequest.DONE) {
-  //       res(this.xhr);
-  //       if (this.formProcess.form) {
-  //         this.formProcess.form.classList.add(this.formProcess.hide);
-  //       }
-  //     }
-  //   });
-
-  //   return p;
-  // }
 
   getAsync(method, query, body) {
     return new Promise((resolve, reject) => {
       const requestText = `${this.url}?${query}`;
-      this.xhr.open(method, requestText);
-      this.xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      const xhr = new XMLHttpRequest();
+      xhr.open(method, requestText);
+      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
 
-      this.xhr.onload = () => {
+      xhr.onload = () => {
         resolve(this.xhr);
         // if (this.xhr.status === 202) {
         //   resolve(this.xhr.response);
@@ -53,11 +23,11 @@ export default class RequestSender {
         // }
       };
 
-      this.xhr.onerror = () => {
+      xhr.onerror = () => {
         resolve(SERVER_ERROR);
       };
 
-      this.xhr.send(body);
+      xhr.send(body);
     });
   }
 
