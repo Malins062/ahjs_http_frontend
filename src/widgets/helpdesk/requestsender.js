@@ -145,8 +145,8 @@ export default class RequestSender {
       return null;
     }
 
-    console.log('changeTicket id=', id);
-    const responseText = await this.sendRequest('PATCH', `method=changeTicket&id=${id}`, body);
+    console.log('changeStatusTicket id=', id);
+    const responseText = await this.sendRequest('PATCH', `method=changeStatusTicket&id=${id}`, body);
     const result = this.responseAnswer(responseText);
     return result;
   }
